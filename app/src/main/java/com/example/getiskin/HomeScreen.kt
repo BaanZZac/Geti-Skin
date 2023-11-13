@@ -27,7 +27,8 @@ fun HomeScreen(navController: NavController) {
         ) {
             Text(text = "피부 진단")
         }
-        Button(onClick = { navController.navigate("diary") }) {
+        Button(onClick = {
+            navController.navigate("diary") }) {
             Text("일지 보기")
         }
     }
