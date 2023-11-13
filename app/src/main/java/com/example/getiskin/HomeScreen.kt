@@ -34,6 +34,7 @@ fun HomeScreen(navController: NavController) {
                 navController.navigate("diary")
             }
         ) {
+
             Text("일지 보기")
         }
     }
