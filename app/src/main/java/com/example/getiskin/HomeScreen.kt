@@ -14,7 +14,9 @@ import androidx.navigation.NavController
 @Composable
 fun HomeScreen(navController: NavController) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // ... 여기에 홈 화면의 다른 UI 요소를 추가할 수 있습니다 ...
@@ -27,7 +29,11 @@ fun HomeScreen(navController: NavController) {
         ) {
             Text(text = "피부 진단")
         }
-        Button(onClick = { navController.navigate("diary") }) {
+        Button(
+            onClick = {
+                navController.navigate("diary")
+            }
+        ) {
             Text("일지 보기")
         }
     }
