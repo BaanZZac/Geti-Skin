@@ -21,8 +21,10 @@ import androidx.navigation.NavController
 // 필요한 추가 import 문
 import android.net.Uri
 import android.os.Environment
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
 import java.text.SimpleDateFormat
@@ -32,12 +34,22 @@ import java.util.*
 fun SkinAnalysisScreen(navController: NavController) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val cameraLauncher: ActivityResultLauncher<Uri>
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        // 선택한 사진의 URI를 처리합니다.
-        imageUri = uri
+    var hasCameraPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.CAMERA
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            hasCameraPermission = true
+        } else {
+            Toast.makeText(context, "Camera permission is required to take photos", Toast.LENGTH_LONG).show()
+        }
     }
 
     // 파일 URI 생성을 위한 함수
@@ -46,22 +58,31 @@ fun SkinAnalysisScreen(navController: NavController) {
         val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return FileProvider.getUriForFile(
             context,
-            "com.example.getiskin.fileprovider",  // 귀하의 앱의 fileprovider
+            "${context.packageName}.fileprovider",
             File.createTempFile("JPEG_${timestamp}_", ".jpg", storageDir)
         ).also { uri ->
-            imageUri = uri  // 사진 촬영 후 이미지 URI 저장
+            imageUri = uri
         }
     }
 
-    cameraLauncher = rememberLauncherForActivityResult(
+    val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
         if (success) {
             // 사진 촬영 성공, imageUri에 이미지가 저장됨
-            // 여기에서 imageUri를 사용하여 이미지를 표시하거나 처리합니다.
+            // TODO: imageUri를 사용하여 이미지를 표시하거나 처리합니다.
         } else {
             // 사진 촬영 실패 처리
+            // TODO: 사용자에게 촬영 실패를 알리는 메시지를 표시합니다.
         }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        // 선택한 사진의 URI를 처리합니다.
+        imageUri = uri
+        // TODO: imageUri를 사용하여 화면에 이미지를 표시하거나 다른 처리를 합니다.
     }
 
     Column(
@@ -69,9 +90,12 @@ fun SkinAnalysisScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = {
-            // 카메라 런처를 실행합니다.
-            val uri = createImageUri()
-            cameraLauncher.launch(uri)
+            if (hasCameraPermission) {
+                val uri = createImageUri()
+                cameraLauncher.launch(uri)
+            } else {
+                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+            }
         }) {
             Text(text = "카메라로 촬영하기")
         }
