@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path
+        name="my_images"
+        path="Pictures/" />
+    <!-- 이외에도 필요한 경로를 지정할 수 있습니다. -->
+</paths>

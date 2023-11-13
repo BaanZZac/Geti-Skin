@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "980887472934",
+    "project_id": "getiskin",
+    "storage_bucket": "getiskin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:980887472934:android:9a7903ba9f44d056b34fe7",
+        "android_client_info": {
+          "package_name": "com.example.getiskin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClMOBIPsldUsugXvbZqOHm5CRO7pwNCPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
