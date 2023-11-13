@@ -35,6 +35,7 @@ fun HomeScreen(navController: NavController) {
             }
         ) {
 
+
             Text("일지 보기")
         }
     }
