@@ -30,7 +30,6 @@ fun MyApp() {
         Surface {
             // NavController 인스턴스를 생성합니다.
             val navController = rememberNavController()
-
             // NavHost를 사용하여 네비게이션 구조를 설정합니다.
             NavHost(navController = navController, startDestination = "login") {
                 composable("login") { LoginScreen(navController) }
@@ -40,6 +39,7 @@ fun MyApp() {
                 composable("diary") { DiaryScreen(navController) }
 
                 // 여기에 다른 화면들을 네비게이션 구조에 추가합니다.
+                // }
             }
         }
     }
