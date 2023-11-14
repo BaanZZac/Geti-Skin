@@ -50,14 +50,14 @@ fun ClinicScreen(navController: NavController) {
         onClick = {
             if (ContextCompat.checkSelfPermission(
                     context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 // 이미 권한이 있는 경우
                 isLocationPermissionGranted = true
             } else {
                 // 권한이 없는 경우
-                requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                requestLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
             }
         },
         modifier = Modifier

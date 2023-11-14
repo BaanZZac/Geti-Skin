@@ -17,8 +17,8 @@ import com.example.getiskin.ui.theme.GetiSkinTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
-
 class MainActivity : ComponentActivity() {
+
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     override fun onCreate(savedInstanceState: Bundle?) {
 

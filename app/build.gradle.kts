@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-android-extensions")
     id("com.google.gms.google-services")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")// 구글 아이디 파이어 추가
 }
@@ -8,6 +9,11 @@ plugins {
 android {
     namespace = "com.example.getiskin"
     compileSdk = 33
+
+
+    buildFeatures {
+        viewBinding = true
+    }
 
     defaultConfig {
         applicationId = "com.example.getiskin"
