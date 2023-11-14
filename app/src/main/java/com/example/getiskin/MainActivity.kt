@@ -14,12 +14,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.getiskin.ui.theme.GetiSkinTheme
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
 
 class MainActivity : ComponentActivity() {
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
         Places.initialize(applicationContext, "AIzaSyBBi36Pj-bYMFFMQ9mAS-vwvOvusUqnglo")
-        val placesClient = Places.createClient(this)
         super.onCreate(savedInstanceState)
         setContent {
             MyApp()
@@ -29,6 +34,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp() {
+
     MaterialTheme {
         Surface {
             // NavController 인스턴스를 생성합니다.
