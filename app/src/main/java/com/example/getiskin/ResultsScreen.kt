@@ -6,4 +6,7 @@ import androidx.navigation.NavController
 @Composable
 fun ResultsScreen(navController: NavController) {
 
+
+
+
 }

@@ -1,10 +1,10 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-android-extensions")
     id("com.google.gms.google-services")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")// 구글 아이디 파이어 추가
 }
+
 
 android {
     namespace = "com.example.getiskin"
@@ -83,4 +83,5 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation ("com.google.android.gms:play-services-location:21.0.1")
     implementation ("com.google.android.libraries.places:places:3.2.0")
+    implementation ("com.airbnb.android:lottie:5.0.2")
 }
