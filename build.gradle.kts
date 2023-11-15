@@ -6,6 +6,8 @@ plugins {
 // 구글 아이디 파이어 추가
 }
 
+
+
 buildscript {
     dependencies {
         classpath("com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1")
