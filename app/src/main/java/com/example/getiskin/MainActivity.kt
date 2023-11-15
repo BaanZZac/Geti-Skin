@@ -37,6 +37,7 @@ fun MyApp() {
                 composable("skin_analysis") { SkinAnalysisScreen(navController) }
                 composable("results") { ResultsScreen(navController) }
                 composable("diary") { DiaryScreen(navController) }
+                composable("shop") { ProductScreen(navController) }
 
                 // 여기에 다른 화면들을 네비게이션 구조에 추가합니다.
                 // }
