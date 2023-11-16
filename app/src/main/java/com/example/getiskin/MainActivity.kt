@@ -69,7 +69,9 @@ fun MyApp() {
                 composable("login") { LoginScreen(navController) }
                 composable("home") { HomeScreen(navController) }
                 composable("skin_analysis") { SkinAnalysisScreen(navController) }
-                composable("results") { ResultsScreen(navController) }
+                composable("results/{predict}") {
+                    val predict = it.arguments?.getString("predict")?.toInt()
+                    ResultsScreen(navController, predict) }
                 composable("diary") { DiaryScreen(navController) }
                 composable("shop") { ShopScreen(navController) }
                 composable("clinic") { ClinicScreen(navController) }

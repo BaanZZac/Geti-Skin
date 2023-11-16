@@ -46,7 +46,7 @@ fun SkinAnalysisScreen(navController: NavController) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var predict by remember { mutableStateOf<Any?>("") }
-    var scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -84,7 +84,18 @@ fun SkinAnalysisScreen(navController: NavController) {
     ) { success: Boolean ->
         if (success) {
             // 사진 촬영 성공, imageUri에 이미지가 저장됨
-            // TODO: imageUri를 사용하여 이미지를 표시하거나 처리합니다.
+            scope.launch {
+                imageUri?.let {
+                    val inputStream = context.contentResolver.openInputStream(it)
+                    val file = File(context.cacheDir, "image.png")
+                    inputStream?.use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    predict = uploadImage(file)
+                }
+            }
         } else {
             // 사진 촬영 실패 처리
             // TODO: 사용자에게 촬영 실패를 알리는 메시지를 표시합니다.
@@ -104,18 +115,18 @@ fun SkinAnalysisScreen(navController: NavController) {
                             input.copyTo(output)
                         }
                     }
-                    predict = UploadImage(file)
+                    predict = uploadImage(file)
+                    // predict 값을 업데이트하고, 결과가 오기를 기다립니다.
+//                    predict = withContext(Dispatchers.IO) {
+//                        uploadImage(file)
+//                    }
+
+                    // 업데이트된 predict 값을 사용하여 navigate 합니다.
+//                    navController.navigate("results/${predict.toString().toInt()}")
                 }
             }
         }
     )
-//    { uri: Uri? ->
-//        // 선택한 사진의 URI를 처리합니다.
-//        imageUri = uri
-//        // TODO: imageUri를 사용하여 화면에 이미지를 표시하거나 다른 처리를 합니다.
-//
-//    }
-
 
     Column(
         modifier = Modifier
@@ -145,35 +156,16 @@ fun SkinAnalysisScreen(navController: NavController) {
         imageUri?.let { uri ->
             Text(text = "선택된 이미지 URI: $uri")
             Text(text = "선택된 이미지 URI: $predict")
+            Button(onClick = { navController.navigate("results/${predict.toString().toInt()}") }) {
+                Text(text = "진단하기")
+            }
         }
     }
-
-
-
-
-//    private suspend fun createFileFromInputStream(inputStream: InputStream?): File = withContext(Dispatchers.IO) {
-//        val file = File(cacheDir, "image.png")
-//        inputStream?.use { input ->
-//            file.outputStream().use { output ->
-//                input.copyTo(output)
-//            }
-//        }
-//        return@withContext file
-//    }
 }
 
-suspend fun UploadImage(file: File) = withContext(Dispatchers.IO) {
+suspend fun uploadImage(file: File) = withContext(Dispatchers.IO) {
     val url = "http://192.168.1.111:5000/predict"
     val client = OkHttpClient()
-//        val file = createFileFromInputStream(inputStream)
-
-//        val inputStream = context.contentResolver.openInputStream(imageUri)
-//        val file = File(context.cacheDir, "image.png")
-//        inputStream?.use { input ->
-//            file.outputStream().use { output ->
-//                input.copyTo(output)
-//            }
-//        }
 
     val requestBody = MultipartBody.Builder()
         .setType(MultipartBody.FORM)
@@ -193,8 +185,6 @@ suspend fun UploadImage(file: File) = withContext(Dispatchers.IO) {
         val response = client.newCall(request).execute()
 
         if (response.isSuccessful) {
-            // Image uploaded successfully
-//                Toast.makeText(context,"이미지 업로드 성공",Toast.LENGTH_SHORT).show()
             val responseBody = response.body()?.string()
 
             val gson = Gson()
@@ -204,7 +194,6 @@ suspend fun UploadImage(file: File) = withContext(Dispatchers.IO) {
             Log.d("성공함", "이미지가 올라갔다? Respones : ${responseBody ?: "no data"}")
             return@withContext intValue
         } else {
-//                Toast.makeText(context,"망함",Toast.LENGTH_SHORT).show()
             Log.e("망함", "망함")
         }
     } catch (e: IOException) {
