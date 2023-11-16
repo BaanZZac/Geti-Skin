@@ -1,6 +1,8 @@
 package com.example.getiskin
 
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,6 +19,19 @@ import com.example.getiskin.ui.theme.GetiSkinTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+
 class MainActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -29,7 +44,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApp()
         }
+
+
+
     }
+    data class PredictResponse(
+        @SerializedName("predicted_class")
+        val predictedClass: Int
+    )
+
+
 }
 
 @Composable
