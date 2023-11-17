@@ -1,8 +1,8 @@
 package com.example.getiskin
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.ImageDecoder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -22,29 +22,30 @@ import androidx.navigation.NavController
 
 // 필요한 추가 import 문
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,9 +65,9 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import androidx.navigation.compose.rememberNavController
-import com.google.android.gms.maps.model.LatLng
 import java.io.File
 import java.io.IOException
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -74,16 +75,15 @@ import java.util.*
 fun SkinAnalysisScreen(navController: NavController) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var predict_oliy by remember { mutableStateOf<Int?>(0) }
-    var predict_face by remember { mutableStateOf<Int?>(0) }
+    var predictOliy by remember { mutableStateOf<Int?>(0) }
+    var predictFace by remember { mutableStateOf<Int?>(0) }
     val scope = rememberCoroutineScope()
-
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
                 context,
-                android.Manifest.permission.CAMERA
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED
         )
     }
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -136,8 +136,8 @@ fun SkinAnalysisScreen(navController: NavController) {
                     )
 
                     // 이후에 각 값을 사용할 수 있도록 처리
-                    predict_oliy = predictedClassOliy
-                    predict_face = predictedClassFace
+                    predictOliy = predictedClassOliy
+                    predictFace = predictedClassFace
                 }
             }
         } else {
@@ -168,8 +168,8 @@ fun SkinAnalysisScreen(navController: NavController) {
                     )
 
                     // 이후에 각 값을 사용할 수 있도록 처리
-                    predict_oliy = predictedClassOliy
-                    predict_face = predictedClassFace
+                    predictOliy = predictedClassOliy
+                    predictFace = predictedClassFace
                     // predict 값을 업데이트하고, 결과가 오기를 기다립니다.
 //                    predict = withContext(Dispatchers.IO) {
 //                        uploadImage(file)
@@ -229,7 +229,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                             val uri = createImageUri()
                             cameraLauncher.launch(uri)
                         } else {
-                            cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                     },
                     modifier = Modifier
@@ -243,7 +243,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                         ),
                     colors = ButtonDefaults.buttonColors(
                         Color(0xFFE39368), // 버튼 배경색상 설정
-                        contentColor = androidx.compose.ui.graphics.Color.White // 버튼 내부 텍스트 색상 설정
+                        contentColor = White // 버튼 내부 텍스트 색상 설정
                     ),
                     shape = RoundedCornerShape(10)
 
@@ -251,7 +251,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                     Text(
                         text = "카메라로 촬영하기",
                         textAlign = TextAlign.Center,
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -273,14 +273,14 @@ fun SkinAnalysisScreen(navController: NavController) {
                         ),
                     colors = ButtonDefaults.buttonColors(
                         Color(0xFFE39368), // 버튼 배경색상 설정
-                        contentColor = androidx.compose.ui.graphics.Color.White // 버튼 내부 텍스트 색상 설정
+                        contentColor = White // 버튼 내부 텍스트 색상 설정
                     ),
                     shape = RoundedCornerShape(10)
                 ) {
                     Text(
                         text = "앨범에서 사진 선택하기",
                         textAlign = TextAlign.Center,
-                        color = androidx.compose.ui.graphics.Color.White,
+                        color = White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -288,15 +288,34 @@ fun SkinAnalysisScreen(navController: NavController) {
 
                 // 선택한 사진의 URI를 화면에 표시합니다. (선택적)
                 imageUri?.let { uri ->
-//            Text(text = "선택된 이미지 URI: $uri")
-                    if (predict_oliy == 1) {
-                        Text(text = "지성 : $predict_oliy")
+                    val encodedUri = URLEncoder.encode(uri.toString(), "UTF-8")
+                    if (predictOliy == 1) {
+                        Text(text = "지성 : $predictOliy")
                     } else {
-                        Text(text = "건성 : $predict_oliy")
+                        Text(text = "건성 : $predictOliy")
                     }
-                    Text(text = "이마 코 볼: $predict_face")
+                    Text(text = "이마 코 볼: $predictFace")
+                    //버전이 낮은건 else를 실행한다
+                    //ImageDecoder쪽을 복사하고 else todo랑 같이 검색하면됨
+                    val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        val decodeBitmap = ImageDecoder.decodeBitmap(
+                            ImageDecoder.createSource(
+                                context.contentResolver,
+                                uri
+                            )
+                        )
+                        decodeBitmap
+                    }else {
+                        MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
+                    }
+                    Image(
+                        bitmap = bitmap.asImageBitmap(), contentDescription = "",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .shadow(2.dp)
+                    )
                     Button(
-                        onClick = { navController.navigate("results/${predict_oliy}/${predict_face}") },
+                        onClick = { navController.navigate("results/${predictOliy}/${predictFace}/${encodedUri}") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp)
@@ -311,24 +330,24 @@ fun SkinAnalysisScreen(navController: NavController) {
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp)) // 간격 조절
-                    TextButton(
-                        onClick = {
-                            navController.navigate("home")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
+                }
+                TextButton(
+                    onClick = {
+                        navController.navigate("home")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
 
-                    ) {
-                        Text(
-                            text = "홈으로",
-                            color = Gray,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                ) {
+                    Text(
+                        text = "홈으로",
+                        color = Gray,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
