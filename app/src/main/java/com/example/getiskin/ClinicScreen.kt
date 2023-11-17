@@ -203,15 +203,7 @@ fun AdPlaceholder() {
         if (isClicked) {
             // 클릭되었을 때의 UI
             // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-            Text(
-                text = "광고를 클릭했습니다.",
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .background(Color.Transparent),
-                color = androidx.compose.ui.graphics.Color.White
-            )
+          showToast(message = "광고가 나올 화면입니다.")
         }
 
         Image(
