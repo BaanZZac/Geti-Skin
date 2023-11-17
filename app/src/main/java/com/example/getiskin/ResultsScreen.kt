@@ -8,8 +8,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun ResultsScreen(navController: NavController, predict: Int?) {
+fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?) {
     Column {
         Text(text = "$predict")
+        Text(text = "$predict2")
     }
 }
