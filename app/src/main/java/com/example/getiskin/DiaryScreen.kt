@@ -2,6 +2,8 @@ package com.example.getiskin
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Divider
@@ -24,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,16 +51,27 @@ fun DiaryScreen(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Title
-        Text(
-            text = "<나의일지>",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+        Image(
+            painter = painterResource(id = R.drawable.logo), // 이미지 리소스 ID로 변경
+            contentDescription = null, // contentDescription은 필요에 따라 추가
             modifier = Modifier
-                .padding(8.dp)
                 .fillMaxWidth()
-                .wrapContentWidth(Alignment.CenterHorizontally)
+                .height(100.dp) // 이미지 높이 조절
         )
-        Divider(color = Color.Black, thickness = 1.dp)
+
+        Text(
+            text = "나 의 일 지",
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(android.graphics.Color.parseColor("#F7F1E5")))
+                .padding(20.dp)
+                .height(30.dp), // 여백 추가
+            textAlign = TextAlign.Center,
+            fontSize = 24.sp, // 원하는 크기로 조절
+            fontWeight = FontWeight.Bold,
+            color = Color(android.graphics.Color.parseColor("#e39368")) // 원하는 색상으로 조절
+        )
+
 
         // Journal Entries
         LazyColumn {
@@ -72,42 +87,51 @@ fun JournalEntryCard(entry: JournalEntry) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
-        shape = MaterialTheme.shapes.medium
+            .padding(8.dp)
+            .border(2.dp, Color(0xFFE39368), shape = RoundedCornerShape(16.dp))
     ) {
-        Column(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+                .fillMaxSize()
+                .background(Color(android.graphics.Color.parseColor("#F7F1E5")))
         ) {
-            // 날짜
-            Text(
-                text = entry.date,
-                style = MaterialTheme.typography.bodySmall,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
-            Divider(color = Color.Black, thickness = 1.dp)
-            // 세로 구분선
-            Spacer(modifier = Modifier.height(8.dp))
+                    .padding(16.dp)
+            ) {
+                // 날짜
+                Text(
+                    text = entry.date,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .align(Alignment.CenterHorizontally)
+                )
+                Divider(color = Color.Black, thickness = 1.dp)
+                // 세로 구분선
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // 내 피부상태
-            Text(text = "피부상태: ${entry.skinCondition}", style = MaterialTheme.typography.titleSmall)
+                // 내 피부상태
+                Text(
+                    text = "피부상태: ${entry.skinCondition}",
+                    style = MaterialTheme.typography.titleSmall
+                )
 
-            // 세로 구분선
-            Spacer(modifier = Modifier.height(8.dp))
+                // 세로 구분선
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // 사진
-            Image(
-                painter = painterResource(id = entry.photoResId),
-                contentDescription = "피부 사진",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .clip(MaterialTheme.shapes.medium)
-            )
+                // 사진
+                Image(
+                    painter = painterResource(id = entry.photoResId),
+                    contentDescription = "피부 사진",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                )
+            }
         }
     }
 }
@@ -117,7 +141,7 @@ data class JournalEntry(val date: String, val skinCondition: String, val photoRe
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun DiaryScreenPreview() {
     val navController = rememberNavController()
     MaterialTheme {
         DiaryScreen(navController)
