@@ -1,10 +1,13 @@
 package com.example.getiskin
 
 import android.hardware.display.DeviceProductInfo
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -170,9 +173,9 @@ data class Product(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductScreen(navController: NavController, skinType: String = "Oily") {
+fun ProductScreen(navController: NavController, skinType: String = "지성") {
     // 현재 선택된 피부 유형을 추적하는 변수
-    var selectedSkinType by remember { mutableStateOf("Oily") }
+    var selectedSkinType by remember { mutableStateOf("지성") }
     // 피부 유형에 따른 상품 리스트
     var productList by remember { mutableStateOf<List<Product>>(emptyList()) }
 
@@ -183,24 +186,21 @@ fun ProductScreen(navController: NavController, skinType: String = "Oily") {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = selectedSkinType, // 선택된 피부 유형에 따라 타이틀 변경
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentSize(Alignment.Center)
-                )
-            }
-        )
-        Divider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(10.dp) // 높이 조절
-                .padding(vertical = 8.dp), // 상하 여백 조절
-            color = Color.Black
-        )
+            TopAppBar(
+                title = {
+                    Text(
+                        text = selectedSkinType, // 선택된 피부 유형에 따라 타이틀 변경
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentSize(Alignment.Center)
+                            .padding(10.dp)
+                    )
+                },
+                modifier = Modifier.height(56.dp)
+            )
 
+        Divider(color = Color.Black, thickness = 1.dp)
+        
         // 피부 유형을 선택하는 버튼 행
         Row(
             modifier = Modifier
@@ -209,9 +209,9 @@ fun ProductScreen(navController: NavController, skinType: String = "Oily") {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // 각 피부 유형 버튼
-            SkinTypeButton("Oily", selectedSkinType, onSelectSkinType = { selectedSkinType = it })
-            SkinTypeButton("Dry", selectedSkinType, onSelectSkinType = { selectedSkinType = it })
-            SkinTypeButton("Combination", selectedSkinType, onSelectSkinType = { selectedSkinType = it })
+            SkinTypeButton("지성", selectedSkinType, onSelectSkinType = { selectedSkinType = it })
+            SkinTypeButton("건성", selectedSkinType, onSelectSkinType = { selectedSkinType = it })
+            SkinTypeButton("복합성", selectedSkinType, onSelectSkinType = { selectedSkinType = it })
         }
 
         // 상품 리스트를 보여주는 LazyColumn
@@ -294,16 +294,16 @@ fun generateProductList(skinType: String): List<Product> {
     // 각 피부 유형에 따른 상품 리스트를 생성하는 로직
     // (이 부분은 실제 서버에서 데이터를 가져오는 로직 등으로 변경할 수 있음)
     return when (skinType) {
-        "Oily" -> listOf(
+        "지성" -> listOf(
             Product(R.drawable.ic_launcher_background, "라운드랩", "1025 독도 토너", "19,900원", "300ml"),
             Product(R.drawable.ic_launcher_background, "비플레인", "녹두 약산성 클렌징폼", "18,900원", "120ml"),
             // ...
         )
-        "Dry" -> listOf(
+        "건성" -> listOf(
             Product(R.drawable.ic_launcher_background, "이즈앤트리", "초저분자 히아루론산 토너", "14,900원", "300ml"),
             // ...
         )
-        "Combination" -> listOf(
+        "복합성" -> listOf(
             Product(R.drawable.ic_launcher_background, "라운드랩", "자작나무 수분 선크림", "19,900원", "80ml"),
             // ...
         )
@@ -323,4 +323,4 @@ fun generateProductList(skinType: String): List<Product> {
 //        ProductScreen(navController)
 //    }
 //}
-
+//
