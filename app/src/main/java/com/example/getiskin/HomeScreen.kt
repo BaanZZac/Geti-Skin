@@ -22,12 +22,12 @@ fun HomeScreen(navController: NavController) {
         Button(
             onClick = {
                 // '피부 진단' 버튼 클릭 시 "skin_analysis" 라우트로 네비게이션
-                navController.navigate("skin_analysis")
-            }
+                navController.navigate("skin_analysis") }
         ) {
             Text(text = "피부 진단")
         }
-        Button(onClick = { navController.navigate("diary") }) {
+        Button(onClick = {
+            navController.navigate("diary") }) {
             Text("일지 보기")
         }
     }

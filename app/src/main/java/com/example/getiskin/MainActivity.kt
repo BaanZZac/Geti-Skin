@@ -14,9 +14,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.getiskin.ui.theme.GetiSkinTheme
-
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.libraries.places.api.Places
 class MainActivity : ComponentActivity() {
+
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        Places.initialize(applicationContext, "AIzaSyBBi36Pj-bYMFFMQ9mAS-vwvOvusUqnglo")
         super.onCreate(savedInstanceState)
         setContent {
             MyApp()
@@ -30,6 +38,7 @@ fun MyApp() {
         Surface {
             // NavController 인스턴스를 생성합니다.
             val navController = rememberNavController()
+
             // NavHost를 사용하여 네비게이션 구조를 설정합니다.
             NavHost(navController = navController, startDestination = "login") {
                 composable("login") { LoginScreen(navController) }
@@ -39,8 +48,9 @@ fun MyApp() {
                 composable("diary") { DiaryScreen(navController) }
                 composable("product") { ProductScreen(navController) }
 
+                composable("shop") { ShopScreen(navController) }
+                composable("clinic") { ClinicScreen(navController) }
                 // 여기에 다른 화면들을 네비게이션 구조에 추가합니다.
-                // }
             }
         }
     }
