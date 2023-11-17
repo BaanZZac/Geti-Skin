@@ -186,7 +186,7 @@ fun ClinicButton(modifier: Modifier, navController: NavController) {
 
 
 @Composable
-fun AdPlaces() {
+fun AdPlaces(navController: NavController) {
     var isClicked by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -201,6 +201,7 @@ fun AdPlaces() {
             .clickable {
                 // 광고를 클릭할 때 수행할 작업 추가
                 isClicked = true
+                navController.navigate("logout")
             }
     ) {
         if (isClicked) {
@@ -401,8 +402,8 @@ fun HomeScreen(navController: NavController) {
 //                            )
 //                        }
 //                    }
-                    AdPlaces()
-                    AdPlaces()
+                    AdPlaces(navController)
+                    AdPlaces(navController)
                 }
 
             }

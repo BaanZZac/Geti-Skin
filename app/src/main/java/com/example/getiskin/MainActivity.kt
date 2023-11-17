@@ -104,10 +104,11 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("home") { HomeScreen(navController) }
                         composable("skin_analysis") { SkinAnalysisScreen(navController) }
-                        composable("results/{predict1}/{predict2}") {
+                        composable("results/{predict1}/{predict2}/{uri}") {
                             val predictOily = it.arguments?.getString("predict1")?.toInt()
                             val predictFace = it.arguments?.getString("predict2")?.toInt()
-                            ResultsScreen(navController, predictOily, predictFace)
+                            val uri = it.arguments?.getString("uri")
+                            ResultsScreen(navController, predictOily, predictFace, uri)
                         }
                         composable("diary") { DiaryScreen(navController) }
                         composable("product") { ProductScreen(navController) }
