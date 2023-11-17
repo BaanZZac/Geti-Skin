@@ -62,6 +62,41 @@ import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 
 @Composable
+fun HomeReturnButton(modifier: Modifier, navController: NavController) {
+
+    Box(
+        modifier = Modifier
+            .height(150.dp)
+            .padding(5.dp)
+            .clip(RoundedCornerShape(10))
+            .clickable {
+                navController.navigate("home")
+            }
+    ) {
+        // Image 등의 내용을 넣어줌
+        Image(
+            painter = painterResource(id = R.drawable.home),
+            contentDescription = null,
+            contentScale = ContentScale.Crop, // 이미지가 잘릴 수 있도록 설정
+            modifier = Modifier
+                .fillMaxSize() // 이미지를 꽉 채우도록 설정
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(10))
+        )
+        Text(
+            text = "홈 화면으로",
+            textAlign = TextAlign.Center,
+            color = Color.Black,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Transparent) // 텍스트 배경을 투명하게 설정
+        )
+    }
+}
+
+@Composable
 fun ClinicSearchButton(modifier: Modifier) {
     val searchText = "피부관리"
     val fusedLocationClient: FusedLocationProviderClient =
@@ -260,39 +295,15 @@ fun ClinicScreen(navController: NavController) {
                 verticalArrangement = Arrangement.Center
             ) {
                 AdPlaceholder()
-
+                Spacer(modifier = Modifier.height(80.dp))
                 // Button
                 ClinicSearchButton(modifier = Modifier
                     .weight(1f))
                 Spacer(modifier = Modifier.height(20.dp))
-                Button(
-                    onClick = {
-                        navController.navigate("home")
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(10.dp)
-                        .border(
-                            1.dp,
-                            Color(android.graphics.Color.parseColor("#e39368")),
-                            shape = RoundedCornerShape(10)
-                        ),
-                    colors = ButtonDefaults.buttonColors(
-                        Color(0xFFE39368), // 버튼 배경색상 설정
-                        contentColor = Color.White // 버튼 내부 텍스트 색상 설정
-                    ),
-                    shape = RoundedCornerShape(10)
-                )
-                {
-                    Text(
-                        text = "메인 화면으로",
-                        textAlign = TextAlign.Center,
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                HomeReturnButton(modifier = Modifier
+                    .weight(1f), navController)
+                Spacer(modifier = Modifier.height(70.dp))
+
                 AdPlaceholder()
             }
 
