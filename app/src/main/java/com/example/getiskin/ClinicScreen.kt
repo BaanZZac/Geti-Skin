@@ -5,16 +5,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -57,7 +61,149 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 
+@Composable
+fun ClinicSearchButton(modifier: Modifier) {
+    val searchText = "피부관리"
+    val fusedLocationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(LocalContext.current)
+    val context = LocalContext.current
+    var isLocationPermissionGranted by remember { mutableStateOf(false) }
+    val requestLocationPermissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            isLocationPermissionGranted = isGranted
+        }
+    var isClicked by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .height(150.dp)
+            .padding(5.dp)
+            .clip(RoundedCornerShape(10))
+            .clickable {
+                isClicked = true
+            }
+    ) {
+        if (isClicked) {
+            // 클릭되었을 때의 UI
+            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
 
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                // 이미 권한이 있는 경우
+                isLocationPermissionGranted = true
+                if (isLocationPermissionGranted) {
+                    // 위치 권한이 허용된 경우 위치 정보 가져오기 시도
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        if (location != null) {
+                            // 위치 정보 가져오기 성공
+                            val currentLatLng =
+                                LatLng(location.latitude, location.longitude)
+
+                            // 검색어와 현재 위치 기반으로 Google Maps 열기
+                            openGoogleMaps(context, currentLatLng, searchText)
+                        } else {
+                            // 위치 정보 없음
+                        }
+                    }.addOnFailureListener { exception ->
+                        // 위치 정보 가져오기 실패
+                    }
+                } else {
+                    // 위치 권한이 거부된 경우 처리
+                    // 여기에 권한이 거부되었을 때의 동작을 추가할 수 있습니다.
+                }
+            } else {
+                // 권한이 없는 경우
+                requestLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+
+        // Image 등의 내용을 넣어줌
+        Image(
+            painter = painterResource(id = R.drawable.clinics),
+            contentDescription = null,
+            contentScale = ContentScale.Crop, // 이미지가 잘릴 수 있도록 설정
+            modifier = Modifier
+                .fillMaxSize() // 이미지를 꽉 채우도록 설정
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(10))
+        )
+        Text(
+            text = "피부관리샵 찾기",
+            textAlign = TextAlign.Center,
+            color = Color.Black ,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Transparent) // 텍스트 배경을 투명하게 설정
+        )
+    }
+}
+@Composable
+fun showToast(message: String) {
+    val context = LocalContext.current
+    val toast = remember { Toast.makeText(context, message, Toast.LENGTH_SHORT) }
+    toast.show()
+}
+@Composable
+fun AdPlaceholder() {
+    var isClicked by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .padding(10.dp)
+            .border(
+                1.dp,
+                Color(android.graphics.Color.parseColor("#e39368")),
+                shape = RoundedCornerShape(10)
+            )
+            .clickable {
+                // 광고를 클릭할 때 수행할 작업 추가
+                isClicked = true
+            }
+    ) {
+        if (isClicked) {
+            // 클릭되었을 때의 UI
+            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
+            Text(
+                text = "광고를 클릭했습니다.",
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .background(Color.Transparent),
+                color = androidx.compose.ui.graphics.Color.White
+            )
+        }
+
+        Image(
+            painter = painterResource(id = R.drawable.analysis), // 가상 이미지 리소스 ID로 변경
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .border(
+                    1.dp,
+                    Color(android.graphics.Color.parseColor("#e39368")),
+                    shape = RoundedCornerShape(10)
+                )
+        )
+        // 광고 텍스트
+        Text(
+            text = "피부클리닉 샵 광고",
+            textAlign = TextAlign.Center,
+            color = androidx.compose.ui.graphics.Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Transparent) // 텍스트 배경을 투명하게 설정
+        )
+    }
+}
 @Composable
 fun ClinicScreen(navController: NavController) {
 
@@ -113,74 +259,18 @@ fun ClinicScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
+                AdPlaceholder()
 
                 // Button
-                Button(
-                    onClick = {
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                android.Manifest.permission.ACCESS_FINE_LOCATION
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            // 이미 권한이 있는 경우
-                            isLocationPermissionGranted = true
-                            if (isLocationPermissionGranted) {
-                                // 위치 권한이 허용된 경우 위치 정보 가져오기 시도
-                                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                                    if (location != null) {
-                                        // 위치 정보 가져오기 성공
-                                        val currentLatLng =
-                                            LatLng(location.latitude, location.longitude)
-
-                                        // 검색어와 현재 위치 기반으로 Google Maps 열기
-                                        openGoogleMaps(context, currentLatLng, searchText)
-                                    } else {
-                                        // 위치 정보 없음
-                                    }
-                                }.addOnFailureListener { exception ->
-                                    // 위치 정보 가져오기 실패
-                                }
-                            } else {
-                                // 위치 권한이 거부된 경우 처리
-                                // 여기에 권한이 거부되었을 때의 동작을 추가할 수 있습니다.
-                            }
-                        } else {
-                            // 권한이 없는 경우
-                            requestLocationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                        }
-                    },
-                    modifier = Modifier
-                        .width(200.dp)
-                        .height(200.dp)
-                        .padding(10.dp)
-                        .border(
-                            1.dp,
-                            Color(android.graphics.Color.parseColor("#e39368")),
-                            shape = RoundedCornerShape(10)
-                        ),
-                    colors = ButtonDefaults.buttonColors(
-                        Color(0xFFE39368), // 버튼 배경색상 설정
-                        contentColor = Color.White // 버튼 내부 텍스트 색상 설정
-                    ),
-                    shape = RoundedCornerShape(10)
-                )
-                {
-                    Text(
-                        text = "주변 클리닉 검색",
-                        textAlign = TextAlign.Center,
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                ClinicSearchButton(modifier = Modifier
+                    .weight(1f))
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = {
                         navController.navigate("home")
                     },
                     modifier = Modifier
-                        .width(200.dp)
+                        .fillMaxWidth()
                         .height(200.dp)
                         .padding(10.dp)
                         .border(
@@ -203,6 +293,7 @@ fun ClinicScreen(navController: NavController) {
                         fontWeight = FontWeight.Bold
                     )
                 }
+                AdPlaceholder()
             }
 
         }
