@@ -48,23 +48,16 @@ fun showToasts(message: String) {
 }
 
 @Composable
-fun SkinButton(modifier: Modifier) {
-    val navController = rememberNavController()
-    var isClicked by remember { mutableStateOf(false) }
+fun SkinButton(modifier: Modifier, navController: NavController) {
     Box(
         modifier = Modifier
             .height(150.dp)
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
             .clickable {
-                isClicked = true
+                navController.navigate("skin_analysis")
             }
     ) {
-        if (isClicked) {
-            // 클릭되었을 때의 UI
-            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-            navController.navigate("skin_analysis")
-        }
         // Image 등의 내용을 넣어줌
         Image(
             painter = painterResource(id = R.drawable.skin),
@@ -78,7 +71,7 @@ fun SkinButton(modifier: Modifier) {
         Text(
             text = "피부 진단",
             textAlign = TextAlign.Center,
-            color = Color.Black ,
+            color = Color.Black,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -89,23 +82,16 @@ fun SkinButton(modifier: Modifier) {
 }
 
 @Composable
-fun DiaryButton(modifier: Modifier) {
-    val navController = rememberNavController()
-    var isClicked by remember { mutableStateOf(false) }
+fun DiaryButton(modifier: Modifier, navController: NavController) {
     Box(
         modifier = Modifier
             .height(150.dp)
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
             .clickable {
-                isClicked = true
+                navController.navigate("diary")
             }
     ) {
-        if (isClicked) {
-            // 클릭되었을 때의 UI
-            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-            navController.navigate("diary")
-        }
         // Image 등의 내용을 넣어줌
         Image(
             painter = painterResource(id = R.drawable.newdiary),
@@ -119,7 +105,7 @@ fun DiaryButton(modifier: Modifier) {
         Text(
             text = "나의 일지",
             textAlign = TextAlign.Center,
-            color = Color.Black ,
+            color = Color.Black,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -130,23 +116,17 @@ fun DiaryButton(modifier: Modifier) {
 }
 
 @Composable
-fun ShopButton(modifier: Modifier) {
-    val navController = rememberNavController()
-    var isClicked by remember { mutableStateOf(false) }
+fun ShopButton(modifier: Modifier, navController: NavController) {
+
     Box(
         modifier = Modifier
             .height(150.dp)
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
             .clickable {
-                isClicked = true
+                navController.navigate("product")
             }
     ) {
-        if (isClicked) {
-            // 클릭되었을 때의 UI
-            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-            navController.navigate("shop")
-        }
         // Image 등의 내용을 넣어줌
         Image(
             painter = painterResource(id = R.drawable.cosmetics),
@@ -160,7 +140,7 @@ fun ShopButton(modifier: Modifier) {
         Text(
             text = "상품 추천",
             textAlign = TextAlign.Center,
-            color = Color.Black ,
+            color = Color.Black,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -171,23 +151,16 @@ fun ShopButton(modifier: Modifier) {
 }
 
 @Composable
-fun ClinicButton(modifier: Modifier) {
-    val navController = rememberNavController()
-    var isClicked by remember { mutableStateOf(false) }
+fun ClinicButton(modifier: Modifier, navController: NavController) {
     Box(
         modifier = Modifier
             .height(150.dp)
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
             .clickable {
-                isClicked = true
+                navController.navigate("clinic")
             }
     ) {
-        if (isClicked) {
-            // 클릭되었을 때의 UI
-            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-            navController.navigate("clinic")
-        }
         // Image 등의 내용을 넣어줌
         Image(
             painter = painterResource(id = R.drawable.clinics),
@@ -201,7 +174,7 @@ fun ClinicButton(modifier: Modifier) {
         Text(
             text = "피부관리샵 찾기",
             textAlign = TextAlign.Center,
-            color = Color.Black ,
+            color = Color.Black,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -252,7 +225,7 @@ fun AdPlaces() {
         Text(
             text = "피부클리닉 샵 광고",
             textAlign = TextAlign.Center,
-            color = androidx.compose.ui.graphics.Color.White,
+            color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -309,19 +282,23 @@ fun HomeScreen(navController: NavController) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        ,
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // 첫 번째 Row
 
-                        // 첫 번째 버튼
+                    // 첫 번째 버튼
 
-                        SkinButton(   modifier = Modifier
-                            .weight(1f))
-                        Spacer(modifier = Modifier.width(15.dp))
-                        DiaryButton(   modifier = Modifier
-                            .weight(1f))
+                    SkinButton(
+                        modifier = Modifier
+                            .weight(1f),
+                        navController
+                    )
+                    Spacer(modifier = Modifier.width(15.dp))
+                    DiaryButton(
+                        modifier = Modifier
+                            .weight(1f), navController
+                    )
 
 
                     // 두 번째 버튼
@@ -358,14 +335,13 @@ fun HomeScreen(navController: NavController) {
 //
 //
 //
-                        ShopButton(
-                            Modifier
-                                .weight(1f)
-                        )
-                        ClinicButton(
-                            Modifier
-                                .weight(1f)
-                        )
+                    ShopButton(
+                        Modifier.weight(1f), navController
+                    )
+                    ClinicButton(
+                        Modifier
+                            .weight(1f), navController
+                    )
 
 //                         세 번째 버튼
 //                        Button(
