@@ -30,6 +30,10 @@ fun HomeScreen(navController: NavController) {
             navController.navigate("diary") }) {
             Text("일지 보기")
         }
+        Button(onClick = {
+            navController.navigate("clinic") }) {
+            Text("샾 추천")
+        }
     }
 }
 

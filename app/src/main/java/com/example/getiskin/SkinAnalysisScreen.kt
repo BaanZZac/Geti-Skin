@@ -1,6 +1,5 @@
 package com.example.getiskin
 
-import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -21,12 +20,24 @@ import androidx.navigation.NavController
 // 필요한 추가 import 문
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import java.io.File
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -34,6 +45,10 @@ import java.util.*
 fun SkinAnalysisScreen(navController: NavController) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var predict_oliy by remember { mutableStateOf<Int?>(0) }
+    var predict_face by remember { mutableStateOf<Int?>(0) }
+    val scope = rememberCoroutineScope()
+
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -70,7 +85,25 @@ fun SkinAnalysisScreen(navController: NavController) {
     ) { success: Boolean ->
         if (success) {
             // 사진 촬영 성공, imageUri에 이미지가 저장됨
-            // TODO: imageUri를 사용하여 이미지를 표시하거나 처리합니다.
+            scope.launch {
+                imageUri?.let {
+                    val inputStream = context.contentResolver.openInputStream(it)
+                    val file = File(context.cacheDir, "image.png")
+                    inputStream?.use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    val (predictedClassOliy, predictedClassFace) = uploadImage(file)
+
+                    // Log 등을 통해 확인
+                    Log.d("성공함", "predictedClassOliy: $predictedClassOliy, predictedClassFace: $predictedClassFace")
+
+                    // 이후에 각 값을 사용할 수 있도록 처리
+                    predict_oliy = predictedClassOliy
+                    predict_face = predictedClassFace
+                }
+            }
         } else {
             // 사진 촬영 실패 처리
             // TODO: 사용자에게 촬영 실패를 알리는 메시지를 표시합니다.
@@ -78,15 +111,42 @@ fun SkinAnalysisScreen(navController: NavController) {
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        // 선택한 사진의 URI를 처리합니다.
-        imageUri = uri
-        // TODO: imageUri를 사용하여 화면에 이미지를 표시하거나 다른 처리를 합니다.
-    }
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            imageUri = uri
+            scope.launch {
+                imageUri?.let {
+                    val inputStream = context.contentResolver.openInputStream(it)
+                    val file = File(context.cacheDir, "image.png")
+                    inputStream?.use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    val (predictedClassOliy, predictedClassFace) = uploadImage(file)
+
+                    // Log 등을 통해 확인
+                    Log.d("성공함", "predictedClassOliy: $predictedClassOliy, predictedClassFace: $predictedClassFace")
+
+                    // 이후에 각 값을 사용할 수 있도록 처리
+                    predict_oliy = predictedClassOliy
+                    predict_face = predictedClassFace
+                    // predict 값을 업데이트하고, 결과가 오기를 기다립니다.
+//                    predict = withContext(Dispatchers.IO) {
+//                        uploadImage(file)
+//                    }
+
+                    // 업데이트된 predict 값을 사용하여 navigate 합니다.
+//                    navController.navigate("results/${predict.toString().toInt()}")
+                }
+            }
+        }
+    )
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = {
@@ -109,7 +169,63 @@ fun SkinAnalysisScreen(navController: NavController) {
 
         // 선택한 사진의 URI를 화면에 표시합니다. (선택적)
         imageUri?.let { uri ->
-            Text(text = "선택된 이미지 URI: $uri")
+//            Text(text = "선택된 이미지 URI: $uri")
+            if (predict_oliy == 1) {
+                Text(text = "지성 : $predict_oliy")
+            } else{
+                Text(text = "건성 : $predict_oliy")
+            }
+            Text(text = "이마 코 볼: $predict_face")
+            Button(onClick = { navController.navigate("results/${predict_oliy}/${predict_face}") }) {
+                Text(text = "진단하기")
+            }
         }
     }
 }
+
+suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO) {
+    val url = "http://192.168.1.111:5000/predict"
+    val client = OkHttpClient()
+
+    val requestBody = MultipartBody.Builder()
+        .setType(MultipartBody.FORM)
+        .addFormDataPart(
+            "image",
+            "image.png",
+            RequestBody.create(MediaType.parse("image/*"), file)
+        )
+        .build()
+
+    val request = Request.Builder()
+        .url(url)
+        .post(requestBody)
+        .build()
+
+    try {
+        val response = client.newCall(request).execute()
+
+        if (response.isSuccessful) {
+            val responseBody = response.body()?.string()
+
+            val gson = Gson()
+            val predictResponse = gson.fromJson(responseBody, PredictResponse::class.java)
+//            val intValue = Pair(predictResponse.predictedClassOliy, predictResponse.predictedClassFace)
+
+            Log.d("성공함", "이미지가 올라갔다? Respones : ${responseBody ?: "no data"}")
+            return@withContext Pair(predictResponse.predictedClassOliy, predictResponse.predictedClassFace)
+        } else {
+            Log.e("망함", "망함")
+        }
+    } catch (e: IOException) {
+        e.printStackTrace()
+        // Handle exception
+    } as Pair<Int, Int>
+}
+
+
+data class PredictResponse(
+    @SerializedName("predicted_class_oliy")
+    val predictedClassOliy: Int,
+    @SerializedName("predicted_class_face")
+    val predictedClassFace: Int
+)

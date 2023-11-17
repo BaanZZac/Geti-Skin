@@ -3,20 +3,17 @@ package com.example.getiskin
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.getiskin.ui.theme.GetiSkinTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.libraries.places.api.Places
+import com.google.gson.annotations.SerializedName
+
 class MainActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -29,7 +26,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApp()
         }
+
+
+
     }
+    data class PredictResponse(
+        @SerializedName("predicted_class")
+        val predictedClass: Int
+    )
+
+
 }
 
 @Composable
@@ -44,7 +50,10 @@ fun MyApp() {
                 composable("login") { LoginScreen(navController) }
                 composable("home") { HomeScreen(navController) }
                 composable("skin_analysis") { SkinAnalysisScreen(navController) }
-                composable("results") { ResultsScreen(navController) }
+                composable("results/{predict1}/{predict2}") {
+                    val predictOily = it.arguments?.getString("predict1")?.toInt()
+                    val predictFace = it.arguments?.getString("predict2")?.toInt()
+                    ResultsScreen(navController, predictOily, predictFace) }
                 composable("diary") { DiaryScreen(navController) }
                 composable("product") { ProductScreen(navController) }
 
