@@ -74,6 +74,8 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics") // 구글 아이디 파이어 추가
     implementation("com.google.firebase:firebase-auth:19.3.0") // 이 버전은 변경될 수 있습니다.
     implementation("com.google.firebase:firebase-firestore:21.4.3")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0") // 이 버전은 변경될 수 있습니다.
     testImplementation("junit:junit:4.13.2")
