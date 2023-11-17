@@ -10,10 +10,24 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,12 +42,15 @@ import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var mAuth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var firestore: FirebaseFirestore
     override fun onCreate(savedInstanceState: Bundle?) {
 
 
@@ -43,6 +60,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         mAuth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
         // 구글 로그인 구현
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id)) // default_web_client_id 에러 시 rebuild
@@ -96,7 +114,7 @@ class MainActivity : ComponentActivity() {
 //                    val navController = rememberNavController()
 
                     // NavHost를 사용하여 네비게이션 구조를 설정합니다.
-                    NavHost(navController = navController, startDestination = startDestination) {
+                    NavHost(navController = navController, startDestination = "splash") {
                         composable("login") {
                             LoginScreen(signInClicked = {
                                 launcher.launch(signInIntent)
@@ -107,6 +125,7 @@ class MainActivity : ComponentActivity() {
                         composable("results/{predict1}/{predict2}/{uri}") {
                             val predictOily = it.arguments?.getString("predict1")?.toInt()
                             val predictFace = it.arguments?.getString("predict2")?.toInt()
+                            ResultsScreen(navController, predictOily, predictFace, mAuth)
                             val uri = it.arguments?.getString("uri")
                             ResultsScreen(navController, predictOily, predictFace, uri)
                         }
@@ -117,11 +136,55 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("shop") { ShopScreen(navController) }
                         composable("clinic") { ClinicScreen(navController) }
+                        composable("splash") {
+                            SplashContent(navController)
+                        }
+
                         // 여기에 다른 화면들을 네비게이션 구조에 추가합니다.
                     }
                 }
             }
 
+        }
+    }
+    @Composable
+    fun SplashContent(navController: NavController) {
+        var scale by remember { mutableStateOf(1f) }
+        var alpha by remember { mutableStateOf(1f) }
+        val user: FirebaseUser? = mAuth.currentUser
+        val startDestination = remember {
+            if (user == null) {
+                "login"
+            } else {
+                "home"
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center
+        ) {
+            // 스플래시 화면에 표시할 내용 (이미지, 로고 등)
+            Image(
+                painter =
+                painterResource(id = R.drawable.logo),
+                contentDescription = null,
+                modifier = Modifier
+                    .graphicsLayer(
+                        scaleX = animateFloatAsState(targetValue = scale, animationSpec = tween(durationMillis = 1000)).value,
+                        scaleY = animateFloatAsState(targetValue = scale, animationSpec = tween(durationMillis = 1000)).value,
+                        alpha = alpha
+                    )
+            )
+            // 스플래시 화면에서 HomeScreen으로 Navigation
+            LaunchedEffect(true) {
+                delay(1000) // 초기 딜레이
+                scale = 1.5f
+                alpha = 0f
+                delay(1000) // 스케일 및 투명도 변경 후 딜레이
+                navController.navigate(startDestination)
+            }
         }
     }
 
