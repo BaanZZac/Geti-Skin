@@ -1,5 +1,6 @@
 package com.example.getiskin
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,9 +33,35 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.auth.api.Auth
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import java.text.SimpleDateFormat
+
+//@SuppressLint("StaticFieldLeak")
+//val db = Firebase.firestore
+//private lateinit var auth: FirebaseAuth
+//@SuppressLint("StaticFieldLeak")
+//private lateinit var firestore: FirebaseFirestore
 
 @Composable
-fun HomeReturnButton2(modifier: Modifier, navController: NavController) {
+fun HomeReturnButton2(modifier: Modifier, navController: NavController, auth: FirebaseAuth) {
+    val db = Firebase.firestore
+    val user = auth.currentUser
+    val uid = user?.uid ?: ""
+    val currentTime = System.currentTimeMillis()
+    val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentTime)
+    val predicts = mutableListOf<IntArray>()
+
+    val analysisData = hashMapOf(
+        "Time" to FieldValue.arrayUnion(time),
+        "predicts" to predicts
+    )
+
 
     Box(
         modifier = Modifier
@@ -42,6 +69,15 @@ fun HomeReturnButton2(modifier: Modifier, navController: NavController) {
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
             .clickable {
+
+                db
+                    .collection("records")
+                    .document(uid)
+
+                    .set(analysisData, SetOptions.merge())
+                    .addOnSuccessListener {
+
+                    }
                 navController.navigate("home")
             }
     ) {
@@ -56,7 +92,7 @@ fun HomeReturnButton2(modifier: Modifier, navController: NavController) {
                 .clip(RoundedCornerShape(10))
         )
         Text(
-            text = "홈 화면으로",
+            text = "결과 저장 및 홈으로",
             textAlign = TextAlign.Center,
             color = Color.Black,
             fontSize = 20.sp,
@@ -69,7 +105,7 @@ fun HomeReturnButton2(modifier: Modifier, navController: NavController) {
 }
 
 @Composable
-fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?) {
+fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?, auth: FirebaseAuth) {
 
     Box(
         modifier = Modifier
@@ -120,8 +156,10 @@ fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?) {
                 ) {
                     Text(text = "$predict")
                     Text(text = "$predict2")
-                    HomeReturnButton2(modifier = Modifier
-                        .weight(1f), navController )
+                    HomeReturnButton2(
+                        modifier = Modifier
+                            .weight(1f), navController, auth
+                    )
                     AdPlaces()
                     AdPlaces()
                 }
@@ -131,6 +169,7 @@ fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?) {
     }
 
 }
+
 @Preview
 @Composable
 fun ResultScreenPreview() {
@@ -139,5 +178,5 @@ fun ResultScreenPreview() {
     // to simulate the navigation.
     // Note: This is a simplified example; you may need to adjust it based on your actual navigation setup.
     val navController = rememberNavController()
-    ResultsScreen(navController = navController, predict= 42, predict2= 100)
+    ResultsScreen(navController = navController,100,100, auth = FirebaseAuth.getInstance())
 }

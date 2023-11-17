@@ -42,6 +42,7 @@ import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var mAuth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var firestore: FirebaseFirestore
     override fun onCreate(savedInstanceState: Bundle?) {
 
 
@@ -58,6 +60,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         mAuth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
         // 구글 로그인 구현
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id)) // default_web_client_id 에러 시 rebuild
@@ -122,7 +125,7 @@ class MainActivity : ComponentActivity() {
                         composable("results/{predict1}/{predict2}") {
                             val predictOily = it.arguments?.getString("predict1")?.toInt()
                             val predictFace = it.arguments?.getString("predict2")?.toInt()
-                            ResultsScreen(navController, predictOily, predictFace)
+                            ResultsScreen(navController, predictOily, predictFace, mAuth)
                         }
                         composable("diary") { DiaryScreen(navController) }
                         composable("product") { ProductScreen(navController) }
