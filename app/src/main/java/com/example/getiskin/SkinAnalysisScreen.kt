@@ -27,11 +27,14 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,9 +78,12 @@ import java.util.*
 fun SkinAnalysisScreen(navController: NavController) {
     val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var predictOliy by remember { mutableStateOf<Int?>(0) }
-    var predictFace by remember { mutableStateOf<Int?>(0) }
+    var selectUris by remember { mutableStateOf<MutableList<Uri?>?>(mutableListOf()) }
+    val predictOliyList by remember { mutableStateOf<MutableList<Int>>(mutableListOf()) }
+    val predictFaceList by remember { mutableStateOf<MutableList<Int>>(mutableListOf()) }
     val scope = rememberCoroutineScope()
+    val maxUrisSize = 3
+    //카메라 퍼미션 확인
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -86,6 +92,7 @@ fun SkinAnalysisScreen(navController: NavController) {
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+    //카메라 퍼미션 확인 런쳐
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -100,7 +107,7 @@ fun SkinAnalysisScreen(navController: NavController) {
         }
     }
 
-    // 파일 URI 생성을 위한 함수
+    //카메라로 찍은 파일 Uri로 바꿔줌
     fun createImageUri(): Uri {
         val timestamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
@@ -113,14 +120,26 @@ fun SkinAnalysisScreen(navController: NavController) {
         }
     }
 
+    //카메라 런쳐
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success: Boolean ->
         if (success) {
             // 사진 촬영 성공, imageUri에 이미지가 저장됨
             scope.launch {
-                imageUri?.let {
-                    val inputStream = context.contentResolver.openInputStream(it)
+                imageUri?.let { uri ->
+                    //이미지 uri들을 selectUris에 하나씩 저장
+                    selectUris?.let { uris ->
+                        val newList = uris.toMutableList()
+                        newList.add(uri)
+                        selectUris = if (newList.size > maxUrisSize) {
+                            newList.takeLast(maxUrisSize).toMutableList()
+                        } else {
+                            newList
+                        }
+                    }
+                    //파일로 변경후 서버 모델에서 예측값 받아오기
+                    val inputStream = context.contentResolver.openInputStream(uri)
                     val file = File(context.cacheDir, "image.png")
                     inputStream?.use { input ->
                         file.outputStream().use { output ->
@@ -128,16 +147,8 @@ fun SkinAnalysisScreen(navController: NavController) {
                         }
                     }
                     val (predictedClassOliy, predictedClassFace) = uploadImage(file)
-
-                    // Log 등을 통해 확인
-                    Log.d(
-                        "성공함",
-                        "predictedClassOliy: $predictedClassOliy, predictedClassFace: $predictedClassFace"
-                    )
-
-                    // 이후에 각 값을 사용할 수 있도록 처리
-                    predictOliy = predictedClassOliy
-                    predictFace = predictedClassFace
+                    predictOliyList.add(predictedClassOliy)
+                    predictFaceList.add(predictedClassFace)
                 }
             }
         } else {
@@ -146,37 +157,41 @@ fun SkinAnalysisScreen(navController: NavController) {
         }
     }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            imageUri = uri
+    //포토피커로 사진 여러장 가져오기
+    val multiPhotoLoader = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(),
+        onResult = { uris ->
+//            selectUris = uris.toMutableList()
+            val selectedUris = uris.take(3)
+            // 현재의 selectUris 크기가 3을 초과하는 경우, 앞에서부터 제거
+            while (selectUris!!.size + selectedUris.size > 3) {
+                selectUris!!.removeAt(0)
+            }
+            selectUris!!.addAll(selectedUris)
+
             scope.launch {
-                imageUri?.let {
-                    val inputStream = context.contentResolver.openInputStream(it)
-                    val file = File(context.cacheDir, "image.png")
-                    inputStream?.use { input ->
-                        file.outputStream().use { output ->
-                            input.copyTo(output)
+                selectUris.let {
+                    if (it != null) {
+                        for (uri in it) {
+                            if (uri != null) {
+                                val inputStream = context.contentResolver.openInputStream(uri)
+                                val file = File(context.cacheDir, "image.png")
+                                inputStream?.use { input ->
+                                    file.outputStream().use { output ->
+                                        input.copyTo(output)
+                                    }
+                                }
+                                try {
+                                    val (predictedClassOliy, predictedClassFace) = uploadImage(file)
+                                    predictOliyList.add(predictedClassOliy)
+                                    predictFaceList.add(predictedClassFace)
+                                    Log.d("성공함", "예측값 추가됨: $predictedClassOliy, $predictedClassFace")
+                                } catch (e: Exception) {
+                                    Log.e("예외 발생", e.toString())
+                                }
+                            }
                         }
                     }
-                    val (predictedClassOliy, predictedClassFace) = uploadImage(file)
-
-                    // Log 등을 통해 확인
-                    Log.d(
-                        "성공함",
-                        "predictedClassOliy: $predictedClassOliy, predictedClassFace: $predictedClassFace"
-                    )
-
-                    // 이후에 각 값을 사용할 수 있도록 처리
-                    predictOliy = predictedClassOliy
-                    predictFace = predictedClassFace
-                    // predict 값을 업데이트하고, 결과가 오기를 기다립니다.
-//                    predict = withContext(Dispatchers.IO) {
-//                        uploadImage(file)
-//                    }
-
-                    // 업데이트된 predict 값을 사용하여 navigate 합니다.
-//                    navController.navigate("results/${predict.toString().toInt()}")
                 }
             }
         }
@@ -223,6 +238,37 @@ fun SkinAnalysisScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally
 
             ) {
+                // 사진 보여주는곳
+                Row {
+                    for (uri in selectUris.orEmpty()) {
+                        if (uri != null) {
+                            val headBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                val decodeBitmap = ImageDecoder.decodeBitmap(
+                                    ImageDecoder.createSource(
+                                        context.contentResolver, uri
+                                    )
+                                )
+                                decodeBitmap
+                            } else {
+                                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                            }
+                            Image(
+                                bitmap = headBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
+                                    .size(130.dp)
+                                    .shadow(2.dp)
+                                    .clickable {
+                                        selectUris?.let { currentUris ->
+                                            // 클릭한 이미지의 uri를 제거
+                                            val updatedUris = currentUris
+                                                .filter { it != uri }
+                                                .toMutableList()
+                                            selectUris = updatedUris
+                                        }
+                                    }
+                            )
+                        }
+                    }
+                }
                 Button(
                     onClick = {
                         if (hasCameraPermission) {
@@ -260,7 +306,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                 Button(
                     onClick = {
                         // 앨범 런처를 실행합니다.
-                        galleryLauncher.launch("image/*")
+                        multiPhotoLoader.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -286,51 +332,32 @@ fun SkinAnalysisScreen(navController: NavController) {
                     )
                 }
 
-                // 선택한 사진의 URI를 화면에 표시합니다. (선택적)
-                imageUri?.let { uri ->
-                    val encodedUri = URLEncoder.encode(uri.toString(), "UTF-8")
-                    if (predictOliy == 1) {
-                        Text(text = "지성 : $predictOliy")
-                    } else {
-                        Text(text = "건성 : $predictOliy")
-                    }
-                    Text(text = "이마 코 볼: $predictFace")
-                    //버전이 낮은건 else를 실행한다
-                    //ImageDecoder쪽을 복사하고 else todo랑 같이 검색하면됨
-                    val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        val decodeBitmap = ImageDecoder.decodeBitmap(
-                            ImageDecoder.createSource(
-                                context.contentResolver,
-                                uri
+                Button(
+                    onClick = {
+                        val headEncodedUri = URLEncoder.encode(selectUris?.get(0).toString(), "UTF-8")
+                        val noseEncodedUri = URLEncoder.encode(selectUris?.get(1).toString(), "UTF-8")
+                        val cheekEncodedUri = URLEncoder.encode(selectUris?.get(2).toString(), "UTF-8")
+                        if (selectUris != null) {
+                            navController.navigate(
+                                "results/${predictOliyList[0]}/${predictOliyList[1]}/${predictOliyList[2]}/${predictFaceList[0]}/${predictFaceList[1]}/${predictFaceList[2]}/${headEncodedUri}/${noseEncodedUri}/${cheekEncodedUri}"
                             )
-                        )
-                        decodeBitmap
-                    }else {
-                        MediaStore.Images.Media.getBitmap(context.contentResolver, imageUri)
-                    }
-                    Image(
-                        bitmap = bitmap.asImageBitmap(), contentDescription = "",
-                        modifier = Modifier
-                            .size(100.dp)
-                            .shadow(2.dp)
+                        }
+                    },
+                    enabled = (selectUris?.size ?: 0) >= 3,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                ) {
+                    Text(
+                        text = "제출",
+                        color = Gray,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    Button(
-                        onClick = { navController.navigate("results/${predictOliy}/${predictFace}/${encodedUri}") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp)
-                    ) {
-                        Text(
-                            text = "제출",
-                            color = Gray,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(10.dp)) // 간격 조절
                 }
+                Spacer(modifier = Modifier.height(10.dp)) // 간격 조절
                 TextButton(
                     onClick = {
                         navController.navigate("home")
@@ -355,7 +382,7 @@ fun SkinAnalysisScreen(navController: NavController) {
 }
 
 suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO) {
-    val url = "http://192.168.1.111:5000/predict"
+    val url = "http://192.168.45.55:5000/predict"
     val client = OkHttpClient()
 
     val requestBody = MultipartBody.Builder()
@@ -380,13 +407,10 @@ suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO
 
             val gson = Gson()
             val predictResponse = gson.fromJson(responseBody, PredictResponse::class.java)
-//            val intValue = Pair(predictResponse.predictedClassOliy, predictResponse.predictedClassFace)
+            val intValue = Pair(predictResponse.predictedClassOliy, predictResponse.predictedClassFace)
 
             Log.d("성공함", "이미지가 올라갔다? Respones : ${responseBody ?: "no data"}")
-            return@withContext Pair(
-                predictResponse.predictedClassOliy,
-                predictResponse.predictedClassFace
-            )
+            return@withContext intValue
         } else {
             Log.e("망함", "망함")
         }
@@ -400,7 +424,7 @@ data class PredictResponse(
     @SerializedName("predicted_class_oliy")
     val predictedClassOliy: Int,
     @SerializedName("predicted_class_face")
-    val predictedClassFace: Int
+    val predictedClassFace: Int,
 )
 
 

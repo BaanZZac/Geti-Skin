@@ -104,11 +104,17 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("home") { HomeScreen(navController) }
                         composable("skin_analysis") { SkinAnalysisScreen(navController) }
-                        composable("results/{predict1}/{predict2}/{uri}") {
-                            val predictOily = it.arguments?.getString("predict1")?.toInt()
-                            val predictFace = it.arguments?.getString("predict2")?.toInt()
-                            val uri = it.arguments?.getString("uri")
-                            ResultsScreen(navController, predictOily, predictFace, uri)
+                        composable("results/{headOil}/{noseOil}/{cheekOil}/{head}/{nose}/{cheek}/{headUri}/{noseUri}/{cheekUri}") {
+                            val predictOilyHead = it.arguments?.getString("headOil")?.toInt()
+                            val predictOilyNose = it.arguments?.getString("noseOil")?.toInt()
+                            val predictOilyChick = it.arguments?.getString("cheekOil")?.toInt()
+                            val predictHead = it.arguments?.getString("head")?.toInt()
+                            val predictNose = it.arguments?.getString("nose")?.toInt()
+                            val predictChick = it.arguments?.getString("cheek")?.toInt()
+                            val headUri = it.arguments?.getString("headUri")
+                            val noseUri = it.arguments?.getString("noseUri")
+                            val cheekUri = it.arguments?.getString("cheekUri")
+                            ResultsScreen(navController, predictOilyHead, predictOilyNose, predictOilyChick, predictHead, predictNose, predictChick, headUri, noseUri, cheekUri)
                         }
                         composable("diary") { DiaryScreen(navController) }
                         composable("product") { ProductScreen(navController) }
