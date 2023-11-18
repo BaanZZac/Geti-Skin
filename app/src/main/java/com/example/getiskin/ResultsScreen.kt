@@ -1,5 +1,11 @@
 package com.example.getiskin
 
+import android.net.Uri
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -13,7 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +44,10 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 //@SuppressLint("StaticFieldLeak")
 //val db = Firebase.firestore
@@ -47,16 +59,21 @@ import java.text.SimpleDateFormat
 fun HomeReturnButton2(modifier: Modifier, navController: NavController, auth: FirebaseAuth) {
     val db = Firebase.firestore
     val user = auth.currentUser
-    val uid = user?.uid ?: ""
-    val currentTime = System.currentTimeMillis()
+    val uid = user?.uid ?: "" //유저
+    val currentTime = System.currentTimeMillis() //버튼을 눌렀을때 날짜
     val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentTime)
-    val predicts = mutableListOf<IntArray>()
+    val predicts = mutableListOf<IntArray>() //결과값
+    var imageUri: Uri? = null
 
     val analysisData = hashMapOf(
         "Time" to FieldValue.arrayUnion(time),
         "predicts" to predicts
     )
 
+    // 현재 시간을 가져오는 함수
+    fun getCurrentTime(): String {
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+    }
 
     Box(
         modifier = Modifier
@@ -65,15 +82,35 @@ fun HomeReturnButton2(modifier: Modifier, navController: NavController, auth: Fi
             .clip(RoundedCornerShape(10))
             .clickable {
 
-                db
-                    .collection("records")
-                    .document(uid)
-
-                    .set(analysisData, SetOptions.merge())
-                    .addOnSuccessListener {
-
+                // 이미지 업로드
+                if (imageUri != null) {
+                    uploadImageToFirestore(imageUri) { imageUrl ->
+                        // 이미지 업로드가 성공한 경우에 Firestore에 데이터 저장
+                        db.collection("records")
+                            .document(uid)
+                            .update(
+                                "Time", FieldValue.arrayUnion(getCurrentTime()),
+                                "predicts", predicts,
+                                "imageUrl", imageUrl
+                            )
+                            .addOnSuccessListener {
+                                // 저장 성공 시 추가 작업 수행
+                                navController.navigate("home")
+                            }
                     }
-                navController.navigate("home")
+                } else {
+                    // 이미지가 없는 경우에는 Firestore에 데이터 저장만 수행
+                    db.collection("records")
+                        .document(uid)
+                        .update(
+                            "Time", FieldValue.arrayUnion(getCurrentTime()),
+                            "predicts", predicts
+                        )
+                        .addOnSuccessListener {
+                            // 저장 성공 시 추가 작업 수행
+                            navController.navigate("home")
+                        }
+                }
             }
     ) {
         // Image 등의 내용을 넣어줌
@@ -99,6 +136,73 @@ fun HomeReturnButton2(modifier: Modifier, navController: NavController, auth: Fi
     }
 }
 
+fun uploadImageToFirestore(imageUri: Uri, onImageUploaded: (String) -> Unit) {
+    val storage = FirebaseStorage.getInstance()
+    val storageRef = storage.reference
+    val imageRef = storageRef.child("images/${imageUri.lastPathSegment}")
+
+    imageRef.putFile(imageUri)
+        .addOnSuccessListener { taskSnapshot ->
+            taskSnapshot.metadata?.reference?.downloadUrl?.addOnSuccessListener { downloadUri ->
+                val imageUrl = downloadUri.toString()
+                onImageUploaded(imageUrl)
+            }
+        }
+        .addOnFailureListener {
+            // 이미지 업로드 실패 시 처리
+        }
+}
+
+
+@Composable
+fun AdPlaces() {
+    var isClicked by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .padding(10.dp)
+            .border(
+                1.dp,
+                Color(android.graphics.Color.parseColor("#e39368")),
+                shape = RoundedCornerShape(10)
+            )
+            .clickable {
+                // 광고를 클릭할 때 수행할 작업 추가
+                isClicked = true
+            }
+    ) {
+        if (isClicked) {
+            // 클릭되었을 때의 UI
+            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
+            showToast(message = "광고가 나올 화면입니다.")
+        }
+
+        Image(
+            painter = painterResource(id = R.drawable.analysis), // 가상 이미지 리소스 ID로 변경
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .border(
+                    1.dp,
+                    Color(android.graphics.Color.parseColor("#e39368")),
+                    shape = RoundedCornerShape(10)
+                )
+        )
+        // 광고 텍스트
+        Text(
+            text = "피부클리닉 샵 광고",
+            textAlign = TextAlign.Center,
+            color = androidx.compose.ui.graphics.Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Transparent) // 텍스트 배경을 투명하게 설정
+        )
+    }
+}
 @Composable
 fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?, auth: FirebaseAuth) {
 
@@ -162,7 +266,6 @@ fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?, a
             }
         }
     }
-
 }
 
 @Preview

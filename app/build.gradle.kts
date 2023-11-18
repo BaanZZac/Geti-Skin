@@ -77,7 +77,8 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.10.0") // 이 버전은 변경될 수 있습니다.
+    implementation("com.google.android.material:material:1.10.0")
+    implementation("com.google.firebase:firebase-storage-ktx:20.3.0") // 이 버전은 변경될 수 있습니다.
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

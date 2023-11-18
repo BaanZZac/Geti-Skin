@@ -126,8 +126,8 @@ class MainActivity : ComponentActivity() {
                             val predictOily = it.arguments?.getString("predict1")?.toInt()
                             val predictFace = it.arguments?.getString("predict2")?.toInt()
                             ResultsScreen(navController, predictOily, predictFace, mAuth)
-                            val uri = it.arguments?.getString("uri")
-                            ResultsScreen(navController, predictOily, predictFace, uri)
+//                            val uri = it.arguments?.getString("uri")
+//                            ResultsScreen(navController, predictOily, predictFace, uri)
                         }
                         composable("diary") { DiaryScreen(navController) }
                         composable("product") { ProductScreen(navController) }
