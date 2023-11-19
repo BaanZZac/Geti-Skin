@@ -6,13 +6,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,33 +38,34 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiaryScreen2(navController: NavController, auth: FirebaseAuth) {
+fun DiaryScreen(navController: NavController, auth: FirebaseAuth) {
     // TODO: DB에서 날짜, 피부상태, 사진 등의 데이터 가져오기
-    val db = Firebase.firestore
-    val user = auth.currentUser
-    val uid = user?.uid ?: ""
+//    val db = Firebase.firestore
+//    val user = auth.currentUser
+//    val uid = user?.uid ?: ""
 
-    val journalEntries by remember { mutableStateOf(emptyList<JournalEntry>()) }
+    var skinAnalysisList by remember { mutableStateOf<List<SkinAnalysisData>>(emptyList()) }
 
-    LaunchedEffect(uid) {
-        val document = db.collection("records").document(uid).get().await()
-        if (document.exists()) {
-            val data = document.data ?: emptyMap()
-            // TODO: Firestore에서 필요한 데이터를 가져와서 journalEntries에 추가
-            // 예시: val date = data["date"] as String
-            //      val skinCondition = data["skinCondition"] as String
-            //      val photoResId = R.drawable.ic_launcher_background // 임시값, 실제로는 저장된 이미지의 리소스 ID 사용
-            //      journalEntries = listOf(JournalEntry(date, skinCondition, photoResId))
-        }
+//    val journalEntries by remember { mutableStateOf(emptyList<JournalEntry>()) }
+
+    LaunchedEffect(Unit) {
+        // 코루틴을 사용하여 데이터를 비동기적으로 가져옴
+        skinAnalysisList = fetchDataFromFirestore(auth.currentUser?.uid ?: "")
+//        val document = db.collection("records").document(uid).get().await()
+//        if (document.exists()) {
+//            val data = document.data ?: emptyMap()
+//            // TODO: Firestore에서 필요한 데이터를 가져와서 journalEntries에 추가
+//            // 예시: val date = data["date"] as String
+//            //      val skinCondition = data["skinCondition"] as String
+//            //      val photoResId = R.drawable.ic_launcher_background // 임시값, 실제로는 저장된 이미지의 리소스 ID 사용
+//            //      journalEntries = listOf(JournalEntry(date, skinCondition, photoResId))
+//        }
     }
 
     Column(
@@ -97,7 +97,7 @@ fun DiaryScreen2(navController: NavController, auth: FirebaseAuth) {
 
         // Journal Entries
         LazyColumn {
-            items(journalEntries) { entry ->
+            items(skinAnalysisList) { entry ->
                 JournalEntryCard(entry = entry)
             }
         }
@@ -105,7 +105,7 @@ fun DiaryScreen2(navController: NavController, auth: FirebaseAuth) {
 }
 
 @Composable
-fun JournalEntryCard(entry: JournalEntry) {
+fun JournalEntryCard(entry: SkinAnalysisData) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,7 +124,7 @@ fun JournalEntryCard(entry: JournalEntry) {
             ) {
                 // 날짜
                 Text(
-                    text = entry.time,
+                    text = entry.timestamp,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,15 +137,15 @@ fun JournalEntryCard(entry: JournalEntry) {
 
                 // 내 피부상태
                 Text(
-                    text = "피부상태: ${entry.finalPredicts}",
+                    text = "피부상태: ${entry.finalSkinType}",
                     style = MaterialTheme.typography.titleSmall
                 )
 
                 // 세로 구분선
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row {
-                    // 사진
+                // 사진
+                LoadImageFromFirebase(entry.imageUrl1)
 //                    Image(
 //                        painter = painterResource(id = entry.imageuri1),
 //                        contentDescription = "피부 사진",
@@ -154,9 +154,10 @@ fun JournalEntryCard(entry: JournalEntry) {
 //                            .height(100.dp)
 //                            .clip(MaterialTheme.shapes.medium)
 //                    )
-                    Text(text = "${entry.skinType1} : ${entry.facePart1}")
+                Text(text = "${entry.facePart1} : ${entry.skinType1}")
 
-                    // 사진
+                // 사진
+                LoadImageFromFirebase(entry.imageUrl2)
 //                    Image(
 //                        painter = painterResource(id = entry.imageuri2),
 //                        contentDescription = "피부 사진",
@@ -165,9 +166,10 @@ fun JournalEntryCard(entry: JournalEntry) {
 //                            .height(100.dp)
 //                            .clip(MaterialTheme.shapes.medium)
 //                    )
-                    Text(text = "${entry.skinType2} : ${entry.facePart2}")
+                Text(text = "${entry.facePart2} : ${entry.skinType2}")
 
-                    // 사진
+                // 사진
+                LoadImageFromFirebase(entry.imageUrl3)
 //                    Image(
 //                        painter = painterResource(id = entry.imageuri3),
 //                        contentDescription = "피부 사진",
@@ -176,9 +178,7 @@ fun JournalEntryCard(entry: JournalEntry) {
 //                            .height(100.dp)
 //                            .clip(MaterialTheme.shapes.medium)
 //                    )
-                    Text(text = "${entry.skinType3} : ${entry.facePart3}")
-                }
-
+                Text(text = "${entry.facePart3} : ${entry.skinType3}")
             }
         }
     }
@@ -197,13 +197,14 @@ data class JournalEntry(
     val imageUri2: Uri,
     val imageUri3: Uri
 )
+
 @Composable
-fun DiaryScreen(navController: NavController, auth: FirebaseAuth) {
+fun DiaryScreen2(navController: NavController, auth: FirebaseAuth) {
     var skinAnalysisList by remember { mutableStateOf<List<SkinAnalysisData>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         // 코루틴을 사용하여 데이터를 비동기적으로 가져옴
-        skinAnalysisList = fetchDataFromFirestore()
+        skinAnalysisList = fetchDataFromFirestore(auth.currentUser?.uid ?: "")
     }
 
     Column {
@@ -212,7 +213,7 @@ fun DiaryScreen(navController: NavController, auth: FirebaseAuth) {
     }
 }
 
-private suspend fun fetchDataFromFirestore(): List<SkinAnalysisData> = suspendCoroutine { continuation ->
+private suspend fun fetchDataFromFirestore(userId: String): List<SkinAnalysisData> = suspendCoroutine { continuation ->
     val db = FirebaseFirestore.getInstance()
     val result = mutableListOf<SkinAnalysisData>()
 
@@ -222,7 +223,9 @@ private suspend fun fetchDataFromFirestore(): List<SkinAnalysisData> = suspendCo
         .addOnSuccessListener { querySnapshot ->
             for (document in querySnapshot) {
                 val skinAnalysisData = document.toObject(SkinAnalysisData::class.java)
-                result.add(skinAnalysisData)
+                if (skinAnalysisData.userID == userId) {
+                    result.add(skinAnalysisData)
+                }
             }
             continuation.resume(result)
         }
@@ -250,14 +253,11 @@ private fun SkinAnalysisItem(skinAnalysisData: SkinAnalysisData) {
             .background(Color.Gray)
             .padding(16.dp)
     ) {
-//        Text("UserID: ${skinAnalysisData.userID}")
-//        Spacer(modifier = Modifier.height(8.dp))
         Text("Timestamp: ${skinAnalysisData.timestamp}")
         Spacer(modifier = Modifier.height(8.dp))
         Text("Your Skin Type: ${skinAnalysisData.finalSkinType}")
         Spacer(modifier = Modifier.height(8.dp))
         LoadImageFromFirebase(imageUrl = skinAnalysisData.imageUrl1)
-        Text(text = "${skinAnalysisData.imageUrl1}")
         Text("First : ${skinAnalysisData.facePart1} : ${skinAnalysisData.skinType1}")
         LoadImageFromFirebase(imageUrl = skinAnalysisData.imageUrl2)
         Text("Second : ${skinAnalysisData.facePart2} : ${skinAnalysisData.skinType2}")
@@ -276,7 +276,10 @@ fun LoadImageFromFirebase(imageUrl: String) {
     Image(
         painter = painter,
         contentDescription = null, // Content description can be null for decorative images
-        modifier = Modifier.size(30.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .clip(MaterialTheme.shapes.medium)
     )
 }
 
