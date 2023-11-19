@@ -1,5 +1,7 @@
 package com.example.getiskin
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,7 +9,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,22 +34,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun showToasts(message: String) {
+fun ShowToasts(message: String) {
     val context = LocalContext.current
     val toast = remember { Toast.makeText(context, message, Toast.LENGTH_SHORT) }
     toast.show()
 }
 
 @Composable
-fun SkinButton(modifier: Modifier, navController: NavController) {
+fun SkinButton(navController: NavController) {
     Box(
         modifier = Modifier
             .height(150.dp)
@@ -71,7 +69,7 @@ fun SkinButton(modifier: Modifier, navController: NavController) {
         Text(
             text = "피부 진단",
             textAlign = TextAlign.Center,
-            color = Color.Black,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -82,7 +80,7 @@ fun SkinButton(modifier: Modifier, navController: NavController) {
 }
 
 @Composable
-fun DiaryButton(modifier: Modifier, navController: NavController) {
+fun DiaryButton(navController: NavController) {
     Box(
         modifier = Modifier
             .height(150.dp)
@@ -105,7 +103,7 @@ fun DiaryButton(modifier: Modifier, navController: NavController) {
         Text(
             text = "나의 일지",
             textAlign = TextAlign.Center,
-            color = Color.Black,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -116,7 +114,7 @@ fun DiaryButton(modifier: Modifier, navController: NavController) {
 }
 
 @Composable
-fun ShopButton(modifier: Modifier, navController: NavController) {
+fun ShopButton(navController: NavController) {
 
     Box(
         modifier = Modifier
@@ -140,7 +138,7 @@ fun ShopButton(modifier: Modifier, navController: NavController) {
         Text(
             text = "상품 추천",
             textAlign = TextAlign.Center,
-            color = Color.Black,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -151,7 +149,7 @@ fun ShopButton(modifier: Modifier, navController: NavController) {
 }
 
 @Composable
-fun ClinicButton(modifier: Modifier, navController: NavController) {
+fun ClinicButton(navController: NavController) {
     Box(
         modifier = Modifier
             .height(150.dp)
@@ -174,7 +172,7 @@ fun ClinicButton(modifier: Modifier, navController: NavController) {
         Text(
             text = "피부관리샵 찾기",
             textAlign = TextAlign.Center,
-            color = Color.Black,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -186,8 +184,9 @@ fun ClinicButton(modifier: Modifier, navController: NavController) {
 
 
 @Composable
-fun AdPlaces(navController: NavController) {
+fun AdPlaces() {
     var isClicked by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -201,13 +200,14 @@ fun AdPlaces(navController: NavController) {
             .clickable {
                 // 광고를 클릭할 때 수행할 작업 추가
                 isClicked = true
-                navController.navigate("logout")
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.intel.co.kr/content/www/kr/ko/homepage.html"))
+                context.startActivity(intent)
             }
     ) {
         if (isClicked) {
             // 클릭되었을 때의 UI
             // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-            showToasts("업체 웹페이지로 이동합니다")
+            ShowToasts("업체 웹페이지로 이동합니다")
         }
 
         Image(
@@ -237,7 +237,7 @@ fun AdPlaces(navController: NavController) {
 }
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, onClicked: () -> Unit) {
 
     Box(
         modifier = Modifier
@@ -286,124 +286,23 @@ fun HomeScreen(navController: NavController) {
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 첫 번째 Row
-
-                    // 첫 번째 버튼
-
                     SkinButton(
-                        modifier = Modifier
-                            .weight(1f),
                         navController
                     )
                     Spacer(modifier = Modifier.width(15.dp))
                     DiaryButton(
-                        modifier = Modifier
-                            .weight(1f), navController
+                        navController
                     )
 
-
-                    // 두 번째 버튼
-//                        Button(
-//                            onClick = {
-//                                navController.navigate("diary")
-//                            },
-//                            modifier = Modifier
-//                                .weight(1f)
-//                                .height(200.dp)
-//                                .padding(5.dp)
-//                                .border(
-//                                    1.dp,
-//                                    Color(android.graphics.Color.parseColor("#e39368")),
-//                                    shape = RoundedCornerShape(10)
-//                                ),
-//                            colors = ButtonDefaults.buttonColors(
-//                                Color(0xFFE39368),
-//                                contentColor = androidx.compose.ui.graphics.Color.White
-//                            ),
-//                            shape = RoundedCornerShape(10)
-//                        ) {
-//                            Text(
-//                                text = "일지 보기",
-//                                textAlign = TextAlign.Center,
-//                                color = androidx.compose.ui.graphics.Color.White,
-//                                fontSize = 18.sp,
-//                                fontWeight = FontWeight.Bold
-//                            )
-//                        }
-//                    }
-//
-//                     간격 추가
-//
-//
-//
                     ShopButton(
-                        Modifier.weight(1f), navController
+                        navController
                     )
                     ClinicButton(
-                        Modifier
-                            .weight(1f), navController
+                        navController
                     )
-
-//                         세 번째 버튼
-//                        Button(
-//                            onClick = {
-//                                navController.navigate("shop")
-//                            },
-//                            modifier = Modifier
-//                                .weight(1f)
-//                                .height(200.dp)
-//                                .padding(5.dp)
-//                                .border(
-//                                    1.dp,
-//                                    Color(android.graphics.Color.parseColor("#e39368")),
-//                                    shape = RoundedCornerShape(10)
-//                                ),
-//                            colors = ButtonDefaults.buttonColors(
-//                                Color(0xFFE39368),
-//                                contentColor = androidx.compose.ui.graphics.Color.White
-//                            ),
-//                            shape = RoundedCornerShape(10)
-//                        ) {
-//                            Text(
-//                                text = "상품 정보 찾기",
-//                                textAlign = TextAlign.Center,
-//                                color = androidx.compose.ui.graphics.Color.White,
-//                                fontSize = 18.sp,
-//                                fontWeight = FontWeight.Bold
-//                            )
-//                        }
-//
-//                         네 번째 버튼
-//                        Button(
-//                            onClick = {
-//                                navController.navigate("clinic")
-//                            },
-//                            modifier = Modifier
-//                                .weight(1f)
-//                                .height(200.dp)
-//                                .padding(5.dp)
-//                                .border(
-//                                    1.dp,
-//                                    Color(android.graphics.Color.parseColor("#e39368")),
-//                                    shape = RoundedCornerShape(10)
-//                                ),
-//                            colors = ButtonDefaults.buttonColors(
-//                                Color(0xFFE39368),
-//                                contentColor = androidx.compose.ui.graphics.Color.White
-//                            ),
-//                            shape = RoundedCornerShape(10)
-//                        ) {
-//                            Text(
-//                                text = "주변 클리닉   찾기",
-//                                textAlign = TextAlign.Center,
-//                                color = androidx.compose.ui.graphics.Color.White,
-//                                fontSize = 18.sp,
-//                                fontWeight = FontWeight.Bold
-//                            )
-//                        }
-//                    }
-                    AdPlaces(navController)
-                    AdPlaces(navController)
+                    LogoutButton(onClicked)
+                    AdPlaces()
+                    AdPlaces()
                 }
 
             }
@@ -412,14 +311,46 @@ fun HomeScreen(navController: NavController) {
 
 }
 
-
-@Preview
 @Composable
-fun HomeScreenPreview() {
-    // You can create a preview of the HomeScreen here
-    // For example, you can use a NavController with a LocalCompositionLocalProvider
-    // to simulate the navigation.
-    // Note: This is a simplified example; you may need to adjust it based on your actual navigation setup.
-    val navController = rememberNavController()
-    HomeScreen(navController = navController)
+fun LogoutButton(onClicked: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .height(150.dp)
+            .padding(5.dp)
+            .clip(RoundedCornerShape(10))
+            .clickable {
+                onClicked()
+            }
+    ) {
+        // Image 등의 내용을 넣어줌
+        Image(
+            painter = painterResource(id = R.drawable.logout),
+            contentDescription = null,
+            contentScale = ContentScale.Crop, // 이미지가 잘릴 수 있도록 설정
+            modifier = Modifier
+                .fillMaxSize() // 이미지를 꽉 채우도록 설정
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(10))
+        )
+        Text(
+            text = "로그아웃",
+            textAlign = TextAlign.Center,
+            color = Color.White,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(16.dp)
+                .background(Color.Transparent) // 텍스트 배경을 투명하게 설정
+        )
+    }
 }
+//@Preview
+//@Composable
+//fun HomeScreenPreview() {
+//    // You can create a preview of the HomeScreen here
+//    // For example, you can use a NavController with a LocalCompositionLocalProvider
+//    // to simulate the navigation.
+//    // Note: This is a simplified example; you may need to adjust it based on your actual navigation setup.
+//    val navController = rememberNavController()
+//    HomeScreen(navController = navController)
+//}

@@ -3,7 +3,6 @@ package com.example.getiskin
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
+import coil.transform.CircleCropTransformation
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlin.coroutines.resume
@@ -77,8 +77,8 @@ fun DiaryScreen(auth: FirebaseAuth) {
 
 
         // Journal Entries
-        LazyColumn {
-            items(skinAnalysisList) { entry ->
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(skinAnalysisList.reversed()) { entry ->
                 JournalEntryCard(entry = entry)
             }
         }
@@ -93,57 +93,62 @@ fun JournalEntryCard(entry: SkinAnalysisData) {
             .padding(8.dp)
             .border(2.dp, Color(0xFFE39368), shape = RoundedCornerShape(16.dp))
     ) {
-        Box(
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(Color(android.graphics.Color.parseColor("#F7F1E5")))
+//        ) {
+        Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .background(Color(android.graphics.Color.parseColor("#F7F1E5")))
+                .padding(16.dp)
         ) {
-            Column(
+            Text(
+                text = entry.timestamp,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                // 날짜
-                Text(
-                    text = entry.timestamp,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .align(Alignment.CenterHorizontally)
-                )
-                Divider(color = Color.Black, thickness = 1.dp)
-                // 세로 구분선
-                Spacer(modifier = Modifier.height(8.dp))
+                    .padding(vertical = 4.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            Divider(color = Color.Black, thickness = 1.dp)
+            // 세로 구분선
+            Spacer(modifier = Modifier.height(8.dp))
 
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 // 내 피부상태
-                Text(
-                    text = "피부상태: ${entry.finalSkinType}",
-                    style = MaterialTheme.typography.titleSmall
-                )
+//            Text(
+//                text = "피부상태: ${entry.finalSkinType}",
+//                style = MaterialTheme.typography.titleSmall
+//            )
+                StyledSkinType(entry.finalSkinType)
 
                 // 세로 구분선
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 사진
-                LoadImageFromFirebase(entry.imageUrl1)
-//                    Image(
-//                        painter = painterResource(id = entry.imageuri1),
-//                        contentDescription = "피부 사진",
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(100.dp)
-//                            .clip(MaterialTheme.shapes.medium)
-//                    )
-                Text(text = "${entry.facePart1} : ${entry.skinType1}")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    LoadImageFromFirebase(entry.imageUrl1)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StyledText(entry.facePart1, entry.skinType1)
+                }
 
                 // 사진
-                LoadImageFromFirebase(entry.imageUrl2)
-                Text(text = "${entry.facePart2} : ${entry.skinType2}")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    LoadImageFromFirebase(entry.imageUrl2)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StyledText(entry.facePart2, entry.skinType2)
+
+                }
 
                 // 사진
-                LoadImageFromFirebase(entry.imageUrl3)
-                Text(text = "${entry.facePart3} : ${entry.skinType3}")
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    LoadImageFromFirebase(entry.imageUrl3)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    StyledText(entry.facePart3, entry.skinType3)
+
+                }
             }
         }
     }
@@ -154,9 +159,7 @@ private suspend fun fetchDataFromFirestore(userId: String): List<SkinAnalysisDat
     val result = mutableListOf<SkinAnalysisData>()
 
     // "skinAnalysis" 컬렉션에서 데이터 가져오기
-    db.collection("skinAnalysis")
-        .get()
-        .addOnSuccessListener { querySnapshot ->
+    db.collection("skinAnalysis").get().addOnSuccessListener { querySnapshot ->
             for (document in querySnapshot) {
                 val skinAnalysisData = document.toObject(SkinAnalysisData::class.java)
                 if (skinAnalysisData.userID == userId) {
@@ -164,8 +167,7 @@ private suspend fun fetchDataFromFirestore(userId: String): List<SkinAnalysisDat
                 }
             }
             continuation.resume(result)
-        }
-        .addOnFailureListener { exception ->
+        }.addOnFailureListener { exception ->
             println("Error getting documents: $exception")
             continuation.resumeWithException(exception)
         }
@@ -173,17 +175,15 @@ private suspend fun fetchDataFromFirestore(userId: String): List<SkinAnalysisDat
 
 @Composable
 fun LoadImageFromFirebase(imageUrl: String) {
-    val painter = rememberImagePainter(data = imageUrl,
-        builder = {
-            crossfade(true)
-        })
+    val painter = rememberImagePainter(data = imageUrl, builder = {
+        crossfade(true)
+        transformations(CircleCropTransformation()) // 원형으로 자르기
+    })
 
     Image(
-        painter = painter,
-        contentDescription = null,
-        modifier = Modifier
+        painter = painter, contentDescription = null, modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .height(150.dp)
             .clip(MaterialTheme.shapes.medium)
     )
 }

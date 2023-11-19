@@ -95,13 +95,13 @@ class MainActivity : ComponentActivity() {
                 Surface {
                     // NavHost를 사용하여 네비게이션 구조를 설정합니다.
                     NavHost(navController = navController, startDestination = "splash") {
-                        composable("login") {
-                            LoginScreen(signInClicked = {
-                                launcher.launch(signInIntent)
-                            })
-                        }
-                        composable("home") { HomeScreen(navController) }
+                        composable("login") { LoginScreen(signInClicked = { launcher.launch(signInIntent) }) }
+                        composable("home") { HomeScreen(navController, onClicked = { signOut(navController)}) }
                         composable("skin_analysis") { SkinAnalysisScreen(navController) }
+                        composable("diary") { DiaryScreen(mAuth) }
+                        composable("product") { ProductScreen() }
+                        composable("clinic") { ClinicScreen(navController) }
+                        composable("splash") { SplashContent(navController) }
                         composable("results/{headOil}/{noseOil}/{cheekOil}/{head}/{nose}/{cheek}/{headUri}/{noseUri}/{cheekUri}") {
                             val predictOily1 = it.arguments?.getString("headOil")?.toInt()
                             val predictOily2 = it.arguments?.getString("noseOil")?.toInt()
@@ -125,15 +125,6 @@ class MainActivity : ComponentActivity() {
                                 uri2,
                                 uri3
                             )
-                        }
-                        composable("diary") { DiaryScreen(mAuth) }
-                        composable("product") { ProductScreen() }
-                        composable("logout") {
-                            Logout(onClicked = { signOut(navController) })
-                        }
-                        composable("clinic") { ClinicScreen(navController) }
-                        composable("splash") {
-                            SplashContent(navController)
                         }
                         // 여기에 다른 화면들을 네비게이션 구조에 추가합니다.
                     }
