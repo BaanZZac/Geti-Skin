@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -227,6 +228,9 @@ fun SkinAnalysisScreen(navController: NavController) {
                 fontWeight = FontWeight.Bold,
                 color = Color(android.graphics.Color.parseColor("#e39368")) // 원하는 색상으로 조절
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -235,7 +239,7 @@ fun SkinAnalysisScreen(navController: NavController) {
 
             ) {
                 // 사진 보여주는곳
-                Row {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     for (uri in selectUris.orEmpty()) {
                         if (uri != null) {
                             val headBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -250,7 +254,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                             }
                             Image(
                                 bitmap = headBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
-                                    .size(100.dp)
+                                    .size(120.dp)
                                     .clickable {
                                         selectUris?.let { currentUris ->
                                             // 클릭한 이미지의 uri를 제거
@@ -264,6 +268,9 @@ fun SkinAnalysisScreen(navController: NavController) {
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Button(
                     onClick = {
                         if (hasCameraPermission) {
@@ -327,6 +334,8 @@ fun SkinAnalysisScreen(navController: NavController) {
                     )
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
                 /*TODO 버튼 색변경 및 글씨 스타일링, list로 값 보내기*/
                 Button(
                     onClick = {
@@ -340,17 +349,17 @@ fun SkinAnalysisScreen(navController: NavController) {
                         }
                     },
                     enabled = (selectUris?.size ?: 0) >= 3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
+                    colors = ButtonDefaults.buttonColors(
+                        Color(0xFFE39368), // 버튼 배경색상 설정
+                        contentColor = White // 버튼 내부 텍스트 색상 설정
+                    ),
                 ) {
                     Text(
-                        text = "제출",
+                        text = "진단하기",
                         color = White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxSize()
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp)) // 간격 조절

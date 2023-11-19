@@ -4,8 +4,8 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,8 +32,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -82,7 +86,6 @@ fun saveSkinAnalysisData(skinAnalysisData: SkinAnalysisData) {
 
 @Composable
 fun HomeReturnButton2(
-    modifier: Modifier,
     navController: NavController,
     auth: FirebaseAuth,
     uri1: Uri,
@@ -163,7 +166,7 @@ fun HomeReturnButton2(
         Text(
             text = "결과 저장 및 홈으로",
             textAlign = TextAlign.Center,
-            color = Color.Black,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -189,56 +192,6 @@ fun uploadImageToFirestorage(imageUri: Uri, onImageUploaded: (String) -> Unit) {
             // 이미지 업로드 실패 시 처리
             Log.d("망함", "망함")
         }
-}
-
-@Composable
-fun AdPlaces() {
-    var isClicked by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .padding(10.dp)
-            .border(
-                1.dp,
-                Color(android.graphics.Color.parseColor("#e39368")),
-                shape = RoundedCornerShape(10)
-            )
-            .clickable {
-                // 광고를 클릭할 때 수행할 작업 추가
-                isClicked = true
-            }
-    ) {
-        if (isClicked) {
-            // 클릭되었을 때의 UI
-            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-            ShowToast(message = "광고가 나올 화면입니다.")
-        }
-
-        Image(
-            painter = painterResource(id = R.drawable.analysis), // 가상 이미지 리소스 ID로 변경
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .border(
-                    1.dp,
-                    Color(android.graphics.Color.parseColor("#e39368")),
-                    shape = RoundedCornerShape(10)
-                )
-        )
-        // 광고 텍스트
-        Text(
-            text = "피부클리닉 샵 광고",
-            textAlign = TextAlign.Center,
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(16.dp)
-                .background(Color.Transparent) // 텍스트 배경을 투명하게 설정
-        )
-    }
 }
 
 @Composable
@@ -281,15 +234,13 @@ fun ResultsScreen(
         2 -> "코"
         else -> null
     }
-    var finalSkinType: String? = null
 
-    if (predictOilHead != null && predictOilNose != null && predictOilCheek != null) {
-        finalSkinType = when {
-            predictOilHead > 3 && predictOilNose > 3 && predictOilCheek > 3 -> "건성"
-            predictOilHead <= 3 && predictOilNose <= 3 && predictOilCheek <= 3 -> "지성"
-            else -> "복합성"
-        }
+    val finalSkinType: String = when {
+        skinType1 == "건성" && skinType2 == "건성" && skinType3 == "건성" -> "건성"
+        skinType1 == "지성" && skinType2 == "지성" && skinType3 == "지성" -> "지성"
+        else -> "복합성"
     }
+
 
     Box(
         modifier = Modifier
@@ -338,26 +289,26 @@ fun ResultsScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (finalSkinType != null) {
-                        Text("당신의 피부는 \"$finalSkinType\" 입니다.")
-                    }
-                    Row {
-                        Column {
+                    StyledSkinType(finalSkinType)
+                    Spacer(modifier = Modifier.height(15.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             LoadImageFromUri(uri1)
-                            Text(text = "$facePart1 : $skinType1")
+                            StyledText(facePart1!!, skinType1)
                         }
-                        Column {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             LoadImageFromUri(uri2)
-                            Text(text = "$facePart2 : $skinType2")
+                            StyledText(facePart2!!, skinType2)
                         }
-                        Column {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             LoadImageFromUri(uri3)
-                            Text(text = "$facePart3 : $skinType3")
+                            StyledText(facePart3!!, skinType3)
                         }
                     }
                     HomeReturnButton2(
-                        modifier = Modifier
-                            .weight(1f),
                         navController,
                         auth,
                         uri1,
@@ -407,7 +358,6 @@ fun uploadRawDataToFirestorage(
 
 @Composable
 fun LoadImageFromUri(uri: Uri) {
-
     // Coil을 사용하여 이미지 로드
     Image(
         painter = rememberImagePainter(
@@ -420,5 +370,38 @@ fun LoadImageFromUri(uri: Uri) {
         contentDescription = null,
         modifier = Modifier
             .size(100.dp)
+    )
+}
+
+@Composable
+fun StyledText(first: String, second: String) {
+    val boldFacePart1 = AnnotatedString.Builder().apply {
+        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+            append(first)
+        }
+        append(" : $second")
+    }.toAnnotatedString()
+
+    Text(text = boldFacePart1)
+}
+
+@Composable
+fun StyledSkinType(finalSkinType: String) {
+    val color = when (finalSkinType) {
+        "건성" -> Color.Red
+        "지성" -> Color.Blue
+        "복합성" -> Color.Magenta
+        else -> LocalContentColor.current // 기본 색상
+    }
+
+    val styledText = AnnotatedString.Builder().apply {
+        withStyle(style = SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
+            append("당신의 피부는 \"$finalSkinType\" 입니다.")
+        }
+    }.toAnnotatedString()
+
+    Text(
+        text = styledText,
+        fontSize = 24.sp,
     )
 }

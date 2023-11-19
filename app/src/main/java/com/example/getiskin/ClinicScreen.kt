@@ -4,12 +4,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -163,61 +161,7 @@ fun ClinicSearchButton() {
         )
     }
 }
-@Composable
-fun ShowToast(message: String) {
-    val context = LocalContext.current
-    val toast = remember { Toast.makeText(context, message, Toast.LENGTH_SHORT) }
-    toast.show()
-}
-@Composable
-fun AdPlaceholder() {
-    var isClicked by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .padding(10.dp)
-            .border(
-                1.dp,
-                Color(android.graphics.Color.parseColor("#e39368")),
-                shape = RoundedCornerShape(10)
-            )
-            .clickable {
-                // 광고를 클릭할 때 수행할 작업 추가
-                isClicked = true
-            }
-    ) {
-        if (isClicked) {
-            // 클릭되었을 때의 UI
-            // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-          ShowToast(message = "광고가 나올 화면입니다.")
-        }
 
-        Image(
-            painter = painterResource(id = R.drawable.analysis), // 가상 이미지 리소스 ID로 변경
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .border(
-                    1.dp,
-                    Color(android.graphics.Color.parseColor("#e39368")),
-                    shape = RoundedCornerShape(10)
-                )
-        )
-        // 광고 텍스트
-        Text(
-            text = "피부클리닉 샵 광고",
-            textAlign = TextAlign.Center,
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(16.dp)
-                .background(Color.Transparent) // 텍스트 배경을 투명하게 설정
-        )
-    }
-}
 @Composable
 fun ClinicScreen(navController: NavController) {
 
@@ -273,7 +217,7 @@ fun ClinicScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                AdPlaceholder()
+                AdPlaces()
                 Spacer(modifier = Modifier.height(80.dp))
                 // Button
                 ClinicSearchButton()
@@ -281,7 +225,7 @@ fun ClinicScreen(navController: NavController) {
                 HomeReturnButton(navController)
                 Spacer(modifier = Modifier.height(70.dp))
 
-                AdPlaceholder()
+                AdPlaces()
             }
 
         }
