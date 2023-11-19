@@ -4,13 +4,14 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,79 +43,136 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
-//@SuppressLint("StaticFieldLeak")
-//val db = Firebase.firestore
-//private lateinit var auth: FirebaseAuth
-//@SuppressLint("StaticFieldLeak")
-//private lateinit var firestore: FirebaseFirestore
+
+data class SkinAnalysisData(
+    val userID: String,
+    var timestamp: String,
+    val finalSkinType: String,
+    val skinType1: String,
+    val skinType2: String,
+    val skinType3: String,
+    val facePart1: String,
+    val facePart2: String,
+    val facePart3: String,
+    val imageUrl1: String,
+    val imageUrl2: String,
+    val imageUrl3: String,
+) {
+    // 매개변수가 없는 기본 생성자
+    constructor() : this("", "", "", "", "", "", "", "", "", "", "", "")
+}
+
+//fun addSkinAnalysisData(skinAnalysisData: SkinAnalysisData) {
+//
+//    // 컬렉션 경로 설정 (userID)
+//    val collectionPath = "users/${skinAnalysisData.userID}/${skinAnalysisData.timestamp}"
+//    val db = FirebaseFirestore.getInstance()
+//
+//    // 도큐먼트 추가
+//    db.collection(collectionPath)
+//        .document("${skinAnalysisData.facePart}_${skinAnalysisData.skinType}")
+//        .set(skinAnalysisData)
+//        .addOnSuccessListener {
+//            // 성공적으로 추가된 경우
+//            Log.d("성공", "진짜")
+//            println("Data added successfully!")
+//        }
+//        .addOnFailureListener { e ->
+//            // 추가 중에 오류가 발생한 경우
+//            Log.e("실패", "진짜..")
+//            println("Error adding data: $e")
+//        }
+//}
+
+fun saveSkinAnalysisData(skinAnalysisData: SkinAnalysisData) {
+    val db = FirebaseFirestore.getInstance()
+
+    // Add a new document with a generated ID
+    db.collection("skinAnalysis")
+        .add(skinAnalysisData)
+        .addOnSuccessListener { documentReference ->
+            println("DocumentSnapshot added with ID: ${documentReference.id}")
+        }
+        .addOnFailureListener { e ->
+            println("Error adding document: $e")
+        }
+}
+
 
 @Composable
-fun HomeReturnButton2(modifier: Modifier, navController: NavController, auth: FirebaseAuth) {
-    val db = Firebase.firestore
+fun HomeReturnButton2(
+    modifier: Modifier,
+    navController: NavController,
+    auth: FirebaseAuth,
+    uri1: Uri,
+    uri2: Uri,
+    uri3: Uri,
+    skinType1: String,
+    skinType2: String,
+    skinType3: String,
+    facePart1: String?,
+    facePart2: String?,
+    facePart3: String?,
+    finalSkinType: String?
+) {
     val user = auth.currentUser
     val uid = user?.uid ?: "" //유저
-    val currentTime = System.currentTimeMillis() //버튼을 눌렀을때 날짜
-    val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(currentTime)
-    val predicts = mutableListOf<IntArray>() //결과값
-    var imageUri: Uri? = null
-
-    val analysisData = hashMapOf(
-        "Time" to FieldValue.arrayUnion(time),
-        "predicts" to predicts
-    )
-
-    // 현재 시간을 가져오는 함수
-    fun getCurrentTime(): String {
-        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-    }
-
+    var imageUrl1 by remember { mutableStateOf("") }
+    var imageUrl2 by remember { mutableStateOf("") }
+    var imageUrl3 by remember { mutableStateOf("") }
     Box(
         modifier = Modifier
             .height(150.dp)
             .padding(5.dp)
             .clip(RoundedCornerShape(10))
             .clickable {
-
-                // 이미지 업로드
-                if (imageUri != null) {
-                    uploadImageToFirestore(imageUri) { imageUrl ->
-                        // 이미지 업로드가 성공한 경우에 Firestore에 데이터 저장
-                        db
-                            .collection("records")
-                            .document(uid)
-                            .update(
-                                "Time", FieldValue.arrayUnion(getCurrentTime()),
-                                "predicts", predicts,
-                                "imageUrl", imageUrl
+                val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+                uploadRawDataToFirestorage(uri1, skinType1, facePart1,
+                    onImageUploaded = {
+                        Log.d("성공", "이미지 업로드 URL : $it")
+                    })
+                uploadRawDataToFirestorage(uri2, skinType2, facePart2,
+                    onImageUploaded = {
+                        Log.d("성공", "이미지 업로드 URL : $it")
+                    })
+                uploadRawDataToFirestorage(uri3, skinType3, facePart3,
+                    onImageUploaded = {
+                        Log.d("성공", "이미지 업로드 URL : $it")
+                    })
+                uploadImageToFirestorage(uri1) {url1 ->
+                    imageUrl1 = url1
+                    Log.d("URL", "이미지 업로드 URL : $url1")
+                    uploadImageToFirestorage(uri2) {url2 ->
+                        imageUrl2 = url2
+                        uploadImageToFirestorage(uri3) {url3 ->
+                            imageUrl3 = url3
+                            val skinAnalysis = SkinAnalysisData(
+                                uid,
+                                timestamp,
+                                finalSkinType!!,
+                                skinType1,
+                                skinType2,
+                                skinType3,
+                                facePart1!!,
+                                facePart2!!,
+                                facePart3!!,
+                                imageUrl1,
+                                imageUrl2,
+                                imageUrl3
                             )
-                            .addOnSuccessListener {
-                                // 저장 성공 시 추가 작업 수행
-                                navController.navigate("home")
-                            }
-                    }
-                } else {
-                    // 이미지가 없는 경우에는 Firestore에 데이터 저장만 수행
-                    db
-                        .collection("records")
-                        .document(uid)
-                        .update(
-                            "Time", FieldValue.arrayUnion(getCurrentTime()),
-                            "predicts", predicts
-                        )
-                        .addOnSuccessListener {
-                            // 저장 성공 시 추가 작업 수행
+                            saveSkinAnalysisData(skinAnalysis)
                             navController.navigate("home")
                         }
+
+                    }
                 }
             }
     ) {
@@ -142,10 +199,11 @@ fun HomeReturnButton2(modifier: Modifier, navController: NavController, auth: Fi
     }
 }
 
-fun uploadImageToFirestore(imageUri: Uri, onImageUploaded: (String) -> Unit) {
+fun uploadImageToFirestorage(imageUri: Uri, onImageUploaded: (String) -> Unit) {
     val storage = FirebaseStorage.getInstance()
     val storageRef = storage.reference
     val imageRef = storageRef.child("images/${imageUri.lastPathSegment}")
+
 
     imageRef.putFile(imageUri)
         .addOnSuccessListener { taskSnapshot ->
@@ -156,6 +214,7 @@ fun uploadImageToFirestore(imageUri: Uri, onImageUploaded: (String) -> Unit) {
         }
         .addOnFailureListener {
             // 이미지 업로드 실패 시 처리
+            Log.d("망함", "망함")
         }
 }
 
@@ -210,7 +269,57 @@ fun AdPlaces() {
 }
 
 @Composable
-fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?, auth: FirebaseAuth) {
+fun ResultsScreen(
+    navController: NavController,
+    auth: FirebaseAuth,
+    predictOilHead: Int?,
+    predictOilNose: Int?,
+    predictOilCheek: Int?,
+    predictHead: Int?,
+    predictNose: Int?,
+    predictCheek: Int?,
+    headUriString: String?,
+    noseUriString: String?,
+    cheekUriString: String?
+) {
+    val context = LocalContext.current
+    //버전이 낮은건 else를 실행한다
+    //ImageDecoder쪽을 복사하고 else todo랑 같이 검색하면됨
+    val uri1 = Uri.parse(headUriString)
+    val uri2 = Uri.parse(noseUriString)
+    val uri3 = Uri.parse(cheekUriString)
+    val skinType1 = if (predictOilHead == 0) "건성" else "지성"
+    val skinType2 = if (predictOilNose == 0) "건성" else "지성"
+    val skinType3 = if (predictOilCheek == 0) "건성" else "지성"
+    val facePart1 = when (predictHead) {
+        0 -> "볼"
+        1 -> "이마"
+        2 -> "코"
+        else -> null // 또는 원하는 다른 처리를 수행할 수 있음
+    }
+
+    val facePart2 = when (predictNose) {
+        0 -> "볼"
+        1 -> "이마"
+        2 -> "코"
+        else -> null
+    }
+
+    val facePart3 = when (predictCheek) {
+        0 -> "볼"
+        1 -> "이마"
+        2 -> "코"
+        else -> null
+    }
+    var finalSkinType: String? = null
+
+    if (predictOilHead != null && predictOilNose != null && predictOilCheek != null) {
+        finalSkinType = when {
+            predictOilHead > 3 && predictOilNose > 3 && predictOilCheek > 3 -> "건성"
+            predictOilHead <= 3 && predictOilNose <= 3 && predictOilCheek <= 3 -> "지성"
+            else -> "복합성"
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -259,11 +368,89 @@ fun ResultsScreen(navController: NavController, predict: Int?, predict2: Int?, a
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "$predict")
-                    Text(text = "$predict2")
+//                    if (predictOilHead != null && predictOilNose != null && predictOilCheek != null) {
+//                        if (predictOilHead != predictOilNose || predictOilNose != predictOilCheek || predictOilCheek != predictOilHead) {
+//                            Text("당신의 피부는 \"복합성\" 입니다.")
+//                        } else if (predictOilHead > 3 && predictOilNose > 3 && predictOilCheek > 3) {
+//                            Text("당신의 피부는 \"건성\" 입니다.")
+//                        } else if (predictOilHead <= 3 && predictOilNose <= 3 && predictOilCheek <= 3) {
+//                            Text("당신의 피부는 \"지성\" 입니다.")
+//                        }
+//                    }
+                    if (finalSkinType != null) {
+                        Text("당신의 피부는 \"$finalSkinType\" 입니다.")
+                    }
+                    Row {
+                        Column {
+                            val firstBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                val decodeBitmap = ImageDecoder.decodeBitmap(
+                                    ImageDecoder.createSource(
+                                        context.contentResolver, uri1
+                                    )
+                                )
+                                decodeBitmap
+                            } else {
+                                MediaStore.Images.Media.getBitmap(context.contentResolver, uri1)
+                            }
+                            Image(
+                                bitmap = firstBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
+                                    .size(130.dp)
+                                    .shadow(2.dp)
+                            )
+                            Text(text = "$facePart1 : $skinType1")
+                        }
+                        Column {
+                            val secondBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                val decodeBitmap = ImageDecoder.decodeBitmap(
+                                    ImageDecoder.createSource(
+                                        context.contentResolver, uri2
+                                    )
+                                )
+                                decodeBitmap
+                            } else {
+                                MediaStore.Images.Media.getBitmap(context.contentResolver, uri2)
+                            }
+                            Image(
+                                bitmap = secondBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
+                                    .size(130.dp)
+                                    .shadow(2.dp)
+                            )
+                            Text(text = "$facePart2 : $skinType2")
+                        }
+                        Column {
+                            val thirdBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                val decodeBitmap = ImageDecoder.decodeBitmap(
+                                    ImageDecoder.createSource(
+                                        context.contentResolver, uri3
+                                    )
+                                )
+                                decodeBitmap
+                            } else {
+                                MediaStore.Images.Media.getBitmap(context.contentResolver, uri3)
+                            }
+                            Image(
+                                bitmap = thirdBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
+                                    .size(130.dp)
+                                    .shadow(2.dp)
+                            )
+                            Text(text = "$facePart3 : $skinType3")
+                        }
+                    }
                     HomeReturnButton2(
                         modifier = Modifier
-                            .weight(1f), navController, auth
+                            .weight(1f),
+                        navController,
+                        auth,
+                        uri1,
+                        uri2,
+                        uri3,
+                        skinType1,
+                        skinType2,
+                        skinType3,
+                        facePart1,
+                        facePart2,
+                        facePart3,
+                        finalSkinType
                     )
                     AdPlaces()
                     AdPlaces()
@@ -281,123 +468,57 @@ fun ResultScreenPreview() {
     // For example, you can use a NavController with a LocalCompositionLocalProvider
     // to simulate the navigation.
     // Note: This is a simplified example; you may need to adjust it based on your actual navigation setup.
-    val navController = rememberNavController()
-    ResultsScreen(navController = navController, 100, 100, auth = FirebaseAuth.getInstance())
+//    val navController = rememberNavController()
+//    ResultsScreen(navController = navController, 100, 100, auth = FirebaseAuth.getInstance())
 }
 
-@Composable
-fun ResultsScreen2(
-    navController: NavController,
-    auth: FirebaseAuth,
-    predictOilHead: Int?,
-    predictOilNose: Int?,
-    predictOilCheek: Int?,
-    predictHead: Int?,
-    predictNose: Int?,
-    predictCheek: Int?,
-    headUriString: String?,
-    noseUriString: String?,
-    cheekUriString: String?
+fun uploadImageToFirestorage(
+    imageUri: Uri,
+    timestamp: String,
+    imageName: String,
+    onImageUploaded: (String) -> Unit
 ) {
-    Column {
-        val context = LocalContext.current
-        //버전이 낮은건 else를 실행한다
-        //ImageDecoder쪽을 복사하고 else todo랑 같이 검색하면됨
-        val headUri = Uri.parse(headUriString)
-        val noseUri = Uri.parse(noseUriString)
-        val cheekUri = Uri.parse(cheekUriString)
-        val skinType1 = if (predictOilHead == 0) "건성" else "지성"
-        val skinType2 = if (predictOilNose == 0) "건성" else "지성"
-        val skinType3 = if (predictOilCheek == 0) "건성" else "지성"
-        val facePart1 = when (predictHead) {
-            0 -> "볼"
-            1 -> "이마"
-            2 -> "코"
-            else -> null // 또는 원하는 다른 처리를 수행할 수 있음
-        }
+    val storage = FirebaseStorage.getInstance()
+    val storageRef = storage.reference
 
-        val facePart2 = when (predictNose) {
-            0 -> "볼"
-            1 -> "이마"
-            2 -> "코"
-            else -> null
-        }
+    // 이미지를 저장할 경로 및 이름 설정
+    val imageRef = storageRef.child("images/${timestamp}/${imageName}.jpg")
 
-        val facePart3 = when (predictCheek) {
-            0 -> "볼"
-            1 -> "이마"
-            2 -> "코"
-            else -> null
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
-        ) {
-            val firstBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val decodeBitmap = ImageDecoder.decodeBitmap(
-                    ImageDecoder.createSource(
-                        context.contentResolver, headUri
-                    )
-                )
-                decodeBitmap
-            } else {
-                MediaStore.Images.Media.getBitmap(context.contentResolver, headUri)
-            }
-            Image(
-                bitmap = firstBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
-                    .size(150.dp)
-                    .shadow(2.dp)
-            )
-            Text(text = "$facePart1 : $skinType1")
-
-            val secondBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val decodeBitmap = ImageDecoder.decodeBitmap(
-                    ImageDecoder.createSource(
-                        context.contentResolver, noseUri
-                    )
-                )
-                decodeBitmap
-            } else {
-                MediaStore.Images.Media.getBitmap(context.contentResolver, noseUri)
-            }
-            Image(
-                bitmap = secondBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
-                    .size(130.dp)
-                    .shadow(2.dp)
-            )
-            Text(text = "$facePart2 : $skinType2")
-
-            val thirdBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val decodeBitmap = ImageDecoder.decodeBitmap(
-                    ImageDecoder.createSource(
-                        context.contentResolver, cheekUri
-                    )
-                )
-                decodeBitmap
-            } else {
-                MediaStore.Images.Media.getBitmap(context.contentResolver, cheekUri)
-            }
-            Image(
-                bitmap = thirdBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
-                    .size(130.dp)
-                    .shadow(2.dp)
-            )
-            Text(text = "$facePart3 : $skinType3")
-
-        }
-        if (predictOilHead != null && predictOilNose != null && predictOilCheek != null) {
-            if (predictOilHead != predictOilNose || predictOilNose != predictOilCheek || predictOilCheek != predictOilHead) {
-                Text("당신의 피부는 \"복합성\" 입니다.")
-            } else if (predictOilHead > 3 && predictOilNose > 3 && predictOilCheek > 3) {
-                Text("당신의 피부는 \"건성\" 입니다.")
-            } else if (predictOilHead <= 3 && predictOilNose <= 3 && predictOilCheek <= 3) {
-                Text("당신의 피부는 \"지성\" 입니다.")
+    imageRef.putFile(imageUri)
+        .addOnSuccessListener { taskSnapshot ->
+            taskSnapshot.metadata?.reference?.downloadUrl?.addOnSuccessListener { downloadUri ->
+                val imageUrl = downloadUri.toString()
+                onImageUploaded(imageUrl)
             }
         }
-        Button(onClick = {
-            /*TODO : predict값을 userID, timestemp, fireStorage uri 값과 함께 FireStore에 전달, 이후 Daily에서 받아와 사용*/
-        }) {
-            Text(text = "진단 결과 저장하기")
+        .addOnFailureListener {
+            Log.e("실패", "망함")
+            // 이미지 업로드 실패 시 처리
         }
-    }
+}
+
+
+fun uploadRawDataToFirestorage(
+    imageUri: Uri,
+    skinType: String,
+    facePart: String?,
+    onImageUploaded: (String) -> Unit
+) {
+    val storage = FirebaseStorage.getInstance()
+    val storageRef = storage.reference
+
+    // 이미지를 저장할 경로 및 이름 설정
+    val imageRef = storageRef.child("raw/${facePart}/${skinType}/${UUID.randomUUID()}.jpg")
+
+    imageRef.putFile(imageUri)
+        .addOnSuccessListener { taskSnapshot ->
+            taskSnapshot.metadata?.reference?.downloadUrl?.addOnSuccessListener { downloadUri ->
+                val imageUrl = downloadUri.toString()
+                onImageUploaded(imageUrl)
+            }
+        }
+        .addOnFailureListener {
+            Log.e("실패", "망함")
+            // 이미지 업로드 실패 시 처리
+        }
 }

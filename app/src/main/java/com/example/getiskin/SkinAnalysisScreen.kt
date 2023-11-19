@@ -381,7 +381,7 @@ fun SkinAnalysisScreen(navController: NavController) {
 }
 
 suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO) {
-    val url = "http://192.168.0.15:5000/predict"
+    val url = "http://192.168.45.175:5000/predict"
     val client = OkHttpClient()
 
     val requestBody = MultipartBody.Builder()

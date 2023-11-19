@@ -120,16 +120,16 @@ class MainActivity : ComponentActivity() {
                         composable("home") { HomeScreen(navController) }
                         composable("skin_analysis") { SkinAnalysisScreen(navController) }
                         composable("results/{headOil}/{noseOil}/{cheekOil}/{head}/{nose}/{cheek}/{headUri}/{noseUri}/{cheekUri}") {
-                            val predictOilyHead = it.arguments?.getString("headOil")?.toInt()
-                            val predictOilyNose = it.arguments?.getString("noseOil")?.toInt()
-                            val predictOilyChick = it.arguments?.getString("cheekOil")?.toInt()
-                            val predictHead = it.arguments?.getString("head")?.toInt()
-                            val predictNose = it.arguments?.getString("nose")?.toInt()
-                            val predictChick = it.arguments?.getString("cheek")?.toInt()
-                            val headUri = it.arguments?.getString("headUri")
-                            val noseUri = it.arguments?.getString("noseUri")
-                            val cheekUri = it.arguments?.getString("cheekUri")
-                            ResultsScreen2(navController, mAuth, predictOilyHead, predictOilyNose, predictOilyChick, predictHead, predictNose, predictChick, headUri, noseUri, cheekUri)
+                            val predictOily1 = it.arguments?.getString("headOil")?.toInt()
+                            val predictOily2 = it.arguments?.getString("noseOil")?.toInt()
+                            val predictOily3 = it.arguments?.getString("cheekOil")?.toInt()
+                            val predictFace1 = it.arguments?.getString("head")?.toInt()
+                            val predictFace2 = it.arguments?.getString("nose")?.toInt()
+                            val predictFace3 = it.arguments?.getString("cheek")?.toInt()
+                            val uri1 = it.arguments?.getString("headUri")
+                            val uri2 = it.arguments?.getString("noseUri")
+                            val uri3 = it.arguments?.getString("cheekUri")
+                            ResultsScreen(navController, mAuth, predictOily1, predictOily2, predictOily3, predictFace1, predictFace2, predictFace3, uri1, uri2, uri3)
                         }
                         composable("diary") { DiaryScreen(navController, mAuth) }
                         composable("product") { ProductScreen(navController) }
