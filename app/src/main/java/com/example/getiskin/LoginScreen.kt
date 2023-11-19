@@ -1,27 +1,36 @@
 package com.example.getiskin
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 
 @Composable
 fun LoginScreen(signInClicked: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+                    modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        GoogleSignInButton(signInClicked)
+        ) {
+            Image(painter = painterResource(id = R.drawable.logo), contentDescription = null)
+            GoogleSignInButton(signInClicked)
+        }
     }
 }
 
@@ -29,17 +38,9 @@ fun LoginScreen(signInClicked: () -> Unit) {
 fun GoogleSignInButton(
     signInClicked: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable { signInClicked() },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "login With Google",
-            modifier = Modifier.padding(start = 20.dp),
-            fontSize = 20.sp
-        )
-    }
+    Image(
+        painter = painterResource(id = R.drawable.google_login),
+        contentDescription = "구글로그인",
+        modifier = Modifier.size(250.dp, 100.dp).clickable { signInClicked() }
+    )
 }
