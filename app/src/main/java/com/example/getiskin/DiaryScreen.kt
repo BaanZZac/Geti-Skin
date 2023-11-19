@@ -1,6 +1,5 @@
 package com.example.getiskin
 
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -42,30 +39,14 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiaryScreen(navController: NavController, auth: FirebaseAuth) {
-    // TODO: DB에서 날짜, 피부상태, 사진 등의 데이터 가져오기
-//    val db = Firebase.firestore
-//    val user = auth.currentUser
-//    val uid = user?.uid ?: ""
+fun DiaryScreen(auth: FirebaseAuth) {
 
     var skinAnalysisList by remember { mutableStateOf<List<SkinAnalysisData>>(emptyList()) }
-
-//    val journalEntries by remember { mutableStateOf(emptyList<JournalEntry>()) }
 
     LaunchedEffect(Unit) {
         // 코루틴을 사용하여 데이터를 비동기적으로 가져옴
         skinAnalysisList = fetchDataFromFirestore(auth.currentUser?.uid ?: "")
-//        val document = db.collection("records").document(uid).get().await()
-//        if (document.exists()) {
-//            val data = document.data ?: emptyMap()
-//            // TODO: Firestore에서 필요한 데이터를 가져와서 journalEntries에 추가
-//            // 예시: val date = data["date"] as String
-//            //      val skinCondition = data["skinCondition"] as String
-//            //      val photoResId = R.drawable.ic_launcher_background // 임시값, 실제로는 저장된 이미지의 리소스 ID 사용
-//            //      journalEntries = listOf(JournalEntry(date, skinCondition, photoResId))
-//        }
     }
 
     Column(
@@ -158,58 +139,13 @@ fun JournalEntryCard(entry: SkinAnalysisData) {
 
                 // 사진
                 LoadImageFromFirebase(entry.imageUrl2)
-//                    Image(
-//                        painter = painterResource(id = entry.imageuri2),
-//                        contentDescription = "피부 사진",
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(100.dp)
-//                            .clip(MaterialTheme.shapes.medium)
-//                    )
                 Text(text = "${entry.facePart2} : ${entry.skinType2}")
 
                 // 사진
                 LoadImageFromFirebase(entry.imageUrl3)
-//                    Image(
-//                        painter = painterResource(id = entry.imageuri3),
-//                        contentDescription = "피부 사진",
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(100.dp)
-//                            .clip(MaterialTheme.shapes.medium)
-//                    )
                 Text(text = "${entry.facePart3} : ${entry.skinType3}")
             }
         }
-    }
-}
-
-data class JournalEntry(
-    val time: String,
-    val finalPredicts: String,
-    val skinType1: String,
-    val skinType2: String,
-    val skinType3: String,
-    val facePart1: String,
-    val facePart2: String,
-    val facePart3: String,
-    val imageUri1: Uri,
-    val imageUri2: Uri,
-    val imageUri3: Uri
-)
-
-@Composable
-fun DiaryScreen2(navController: NavController, auth: FirebaseAuth) {
-    var skinAnalysisList by remember { mutableStateOf<List<SkinAnalysisData>>(emptyList()) }
-
-    LaunchedEffect(Unit) {
-        // 코루틴을 사용하여 데이터를 비동기적으로 가져옴
-        skinAnalysisList = fetchDataFromFirestore(auth.currentUser?.uid ?: "")
-    }
-
-    Column {
-        Text(text = "왜 안나옴?")
-        SkinAnalysisList(skinAnalysisList)
     }
 }
 
@@ -236,37 +172,6 @@ private suspend fun fetchDataFromFirestore(userId: String): List<SkinAnalysisDat
 }
 
 @Composable
-private fun SkinAnalysisList(skinAnalysisList: List<SkinAnalysisData>) {
-    LazyColumn {
-        items(skinAnalysisList) { skinAnalysisData ->
-            SkinAnalysisItem(skinAnalysisData)
-        }
-    }
-}
-
-@Composable
-private fun SkinAnalysisItem(skinAnalysisData: SkinAnalysisData) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .background(Color.Gray)
-            .padding(16.dp)
-    ) {
-        Text("Timestamp: ${skinAnalysisData.timestamp}")
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Your Skin Type: ${skinAnalysisData.finalSkinType}")
-        Spacer(modifier = Modifier.height(8.dp))
-        LoadImageFromFirebase(imageUrl = skinAnalysisData.imageUrl1)
-        Text("First : ${skinAnalysisData.facePart1} : ${skinAnalysisData.skinType1}")
-        LoadImageFromFirebase(imageUrl = skinAnalysisData.imageUrl2)
-        Text("Second : ${skinAnalysisData.facePart2} : ${skinAnalysisData.skinType2}")
-        LoadImageFromFirebase(imageUrl = skinAnalysisData.imageUrl3)
-        Text("Third : ${skinAnalysisData.facePart3} : ${skinAnalysisData.skinType3}")
-    }
-}
-
-@Composable
 fun LoadImageFromFirebase(imageUrl: String) {
     val painter = rememberImagePainter(data = imageUrl,
         builder = {
@@ -275,74 +180,13 @@ fun LoadImageFromFirebase(imageUrl: String) {
 
     Image(
         painter = painter,
-        contentDescription = null, // Content description can be null for decorative images
+        contentDescription = null,
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
             .clip(MaterialTheme.shapes.medium)
     )
 }
-
-//@Composable
-//fun DiaryScreen(navController: NavController, auth: FirebaseAuth) {
-//    var skinAnalysisList: MutableList<SkinAnalysisData> = mutableListOf()
-//    LaunchedEffect(Unit) {
-//        skinAnalysisList = fetchDataFromFirestore()
-//    }
-//    Column {
-//        Text(text = "왜 안나옴?")
-//        SkinAnalysisList(skinAnalysisList)
-//    }
-//}
-//
-//private fun fetchDataFromFirestore(): MutableList<SkinAnalysisData> {
-//
-//    val db = FirebaseFirestore.getInstance()
-//    val result = mutableListOf<SkinAnalysisData>()
-//
-//    // "skinAnalysis" 컬렉션에서 데이터 가져오기
-//    db.collection("skinAnalysis")
-//        .get()
-//        .addOnSuccessListener { querySnapshot ->
-//            for (document in querySnapshot) {
-//                val skinAnalysisData = document.toObject(SkinAnalysisData::class.java)
-//                result.add(skinAnalysisData)
-//            }
-//        }
-//        .addOnFailureListener { exception ->
-//            println("Error getting documents: $exception")
-//        }
-//
-//    return result
-//}
-//
-//@Composable
-//private fun SkinAnalysisList(skinAnalysisList: List<SkinAnalysisData>) {
-//    LazyColumn {
-//        items(skinAnalysisList) { skinAnalysisData ->
-//            SkinAnalysisItem(skinAnalysisData)
-//        }
-//    }
-//}
-//
-//@Composable
-//private fun SkinAnalysisItem(skinAnalysisData: SkinAnalysisData) {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(16.dp)
-//            .background(Color.Gray)
-//            .padding(16.dp)
-//    ) {
-//        Text("UserID: ${skinAnalysisData.userID}")
-//        Spacer(modifier = Modifier.height(8.dp))
-//        Text("Timestamp: ${skinAnalysisData.timestamp}")
-//        Spacer(modifier = Modifier.height(8.dp))
-//        Text("Skin Type: ${skinAnalysisData.skinType}")
-//        Spacer(modifier = Modifier.height(8.dp))
-//        Text("Face Part: ${skinAnalysisData.facePart}")
-//    }
-//}
 
 //@Preview(showBackground = true)
 //@Composable

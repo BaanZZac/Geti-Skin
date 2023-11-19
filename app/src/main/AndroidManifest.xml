@@ -25,12 +25,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.GetiSkin"
         tools:targetApi="31">
-<!--        <activity-->
-<!--            android:name=".SkinAnalysis"-->
-<!--            android:exported="false" />-->
-        <activity
-            android:name=".SkinAnalysis"
-            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

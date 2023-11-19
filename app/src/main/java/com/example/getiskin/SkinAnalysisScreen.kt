@@ -41,7 +41,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.Color.Companion.White
@@ -82,6 +81,7 @@ fun SkinAnalysisScreen(navController: NavController) {
     val predictFaceList by remember { mutableStateOf<MutableList<Int>>(mutableListOf()) }
     val scope = rememberCoroutineScope()
     val maxUrisSize = 3
+
     //카메라 퍼미션 확인
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -91,6 +91,7 @@ fun SkinAnalysisScreen(navController: NavController) {
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+
     //카메라 퍼미션 확인 런쳐
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -151,8 +152,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                 }
             }
         } else {
-            // 사진 촬영 실패 처리
-            // TODO: 사용자에게 촬영 실패를 알리는 메시지를 표시합니다.
+            Log.e("사진 촬영 실패","실패실패실패실패실패실패")
         }
     }
 
@@ -160,7 +160,6 @@ fun SkinAnalysisScreen(navController: NavController) {
     val multiPhotoLoader = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(),
         onResult = { uris ->
-//            selectUris = uris.toMutableList()
             val selectedUris = uris.take(3)
             // 현재의 selectUris 크기가 3을 초과하는 경우, 앞에서부터 제거
             while (selectUris!!.size + selectedUris.size > 3) {
@@ -228,8 +227,6 @@ fun SkinAnalysisScreen(navController: NavController) {
                 fontWeight = FontWeight.Bold,
                 color = Color(android.graphics.Color.parseColor("#e39368")) // 원하는 색상으로 조절
             )
-
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -253,8 +250,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                             }
                             Image(
                                 bitmap = headBitmap.asImageBitmap(), contentDescription = "", modifier = Modifier
-                                    .size(130.dp)
-                                    .shadow(2.dp)
+                                    .size(100.dp)
                                     .clickable {
                                         selectUris?.let { currentUris ->
                                             // 클릭한 이미지의 uri를 제거
@@ -331,6 +327,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                     )
                 }
 
+                /*TODO 버튼 색변경 및 글씨 스타일링, list로 값 보내기*/
                 Button(
                     onClick = {
                         val headEncodedUri = URLEncoder.encode(selectUris?.get(0).toString(), "UTF-8")
@@ -349,7 +346,7 @@ fun SkinAnalysisScreen(navController: NavController) {
                 ) {
                     Text(
                         text = "제출",
-                        color = Gray,
+                        color = White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -380,12 +377,18 @@ fun SkinAnalysisScreen(navController: NavController) {
     }
 }
 
+//서버와 통신하는 함수
+//비동기 환경에서 처리
 suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO) {
+    //서버가 열린 주소
     val url = "http://192.168.45.175:5000/predict"
+    //ok3http 사용
     val client = OkHttpClient()
 
+    //request(요청)보낼 파일(이미지)생성
     val requestBody = MultipartBody.Builder()
         .setType(MultipartBody.FORM)
+        //이름은 image, 파일이름은 image.png로 보냄
         .addFormDataPart(
             "image",
             "image.png",
@@ -393,18 +396,26 @@ suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO
         )
         .build()
 
+    //request post
     val request = Request.Builder()
+        //해당 서버주소
         .url(url)
+        //파일 전송
         .post(requestBody)
         .build()
 
+    //오류 캐치를 위해
     try {
+        //응답을 받아옴(요청에 대한값)
         val response = client.newCall(request).execute()
 
         if (response.isSuccessful) {
+            //응답이 온다면 string으로 만듦
             val responseBody = response.body()?.string()
 
+            //json파일 pasing을 위한 함수 사용
             val gson = Gson()
+            //응답을 PredictResponse에 값을 참조해옴
             val predictResponse = gson.fromJson(responseBody, PredictResponse::class.java)
             val intValue = Pair(predictResponse.predictedClassOliy, predictResponse.predictedClassFace)
 
@@ -419,42 +430,14 @@ suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO
     } as Pair<Int, Int>
 }
 
+//서버에서 보낸 json에서 값을 추출
 data class PredictResponse(
+    //이 이름을 찾음 @SeriallizedName
     @SerializedName("predicted_class_oliy")
     val predictedClassOliy: Int,
     @SerializedName("predicted_class_face")
     val predictedClassFace: Int,
 )
-
-
-//Column(
-//modifier = Modifier
-//.fillMaxWidth()
-//.padding(16.dp),
-//verticalArrangement = Arrangement.Bottom
-//) {
-//    Spacer(modifier = Modifier.height(16.dp)) // 간격 조절
-//
-//    TextButton(
-//        onClick = {
-//             "홈으로" 버튼 클릭 시 수행할 작업 추가
-//             예를 들어, 홈 화면으로 이동하는 네비게이션 등
-//        },
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(50.dp)
-//            .background(MaterialTheme.colorScheme.primary)
-//    ) {
-//        Text(
-//            text = "홈으로",
-//            color = White,
-//            fontSize = 18.sp,
-//            fontWeight = FontWeight.Bold,
-//            textAlign = TextAlign.Center,
-//            modifier = Modifier.fillMaxSize()
-//        )
-//    }
-//}
 
 @Preview
 @Composable

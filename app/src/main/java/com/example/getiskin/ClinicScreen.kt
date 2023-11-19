@@ -1,6 +1,5 @@
 package com.example.getiskin
 
-
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -15,24 +14,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,13 +47,9 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.net.FetchPlaceRequest
-import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 
 @Composable
-fun HomeReturnButton(modifier: Modifier, navController: NavController) {
+fun HomeReturnButton(navController: NavController) {
 
     Box(
         modifier = Modifier
@@ -97,7 +84,7 @@ fun HomeReturnButton(modifier: Modifier, navController: NavController) {
 }
 
 @Composable
-fun ClinicSearchButton(modifier: Modifier) {
+fun ClinicSearchButton() {
     val searchText = "피부관리"
     val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(LocalContext.current)
@@ -177,7 +164,7 @@ fun ClinicSearchButton(modifier: Modifier) {
     }
 }
 @Composable
-fun showToast(message: String) {
+fun ShowToast(message: String) {
     val context = LocalContext.current
     val toast = remember { Toast.makeText(context, message, Toast.LENGTH_SHORT) }
     toast.show()
@@ -203,7 +190,7 @@ fun AdPlaceholder() {
         if (isClicked) {
             // 클릭되었을 때의 UI
             // 예를 들어, 광고 클릭 후에 할 작업을 여기에 추가
-          showToast(message = "광고가 나올 화면입니다.")
+          ShowToast(message = "광고가 나올 화면입니다.")
         }
 
         Image(
@@ -222,7 +209,7 @@ fun AdPlaceholder() {
         Text(
             text = "피부클리닉 샵 광고",
             textAlign = TextAlign.Center,
-            color = androidx.compose.ui.graphics.Color.White,
+            color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -289,11 +276,9 @@ fun ClinicScreen(navController: NavController) {
                 AdPlaceholder()
                 Spacer(modifier = Modifier.height(80.dp))
                 // Button
-                ClinicSearchButton(modifier = Modifier
-                    .weight(1f))
+                ClinicSearchButton()
                 Spacer(modifier = Modifier.height(20.dp))
-                HomeReturnButton(modifier = Modifier
-                    .weight(1f), navController)
+                HomeReturnButton(navController)
                 Spacer(modifier = Modifier.height(70.dp))
 
                 AdPlaceholder()

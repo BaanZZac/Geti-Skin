@@ -50,7 +50,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var firestore: FirebaseFirestore
     override fun onCreate(savedInstanceState: Bundle?) {
 
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         Places.initialize(applicationContext, "AIzaSyBBi36Pj-bYMFFMQ9mAS-vwvOvusUqnglo")
@@ -67,17 +66,8 @@ class MainActivity : ComponentActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         setContent {
-            val user: FirebaseUser? = mAuth.currentUser
             val navController = rememberNavController()
 
-
-            val startDestination = remember {
-                if (user == null) {
-                    "login"
-                } else {
-                    "home"
-                }
-            }
             val signInIntent = googleSignInClient.signInIntent
             val launcher =
                 rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
@@ -99,17 +89,10 @@ class MainActivity : ComponentActivity() {
                     } else {
                         Log.d("SignIn", exception.toString())
                     }
-
-
                 }
-
-//            MyApp(launcher, signInIntent)
 
             MaterialTheme {
                 Surface {
-                    // NavController 인스턴스를 생성합니다.
-//                    val navController = rememberNavController()
-
                     // NavHost를 사용하여 네비게이션 구조를 설정합니다.
                     NavHost(navController = navController, startDestination = "splash") {
                         composable("login") {
@@ -129,19 +112,29 @@ class MainActivity : ComponentActivity() {
                             val uri1 = it.arguments?.getString("headUri")
                             val uri2 = it.arguments?.getString("noseUri")
                             val uri3 = it.arguments?.getString("cheekUri")
-                            ResultsScreen(navController, mAuth, predictOily1, predictOily2, predictOily3, predictFace1, predictFace2, predictFace3, uri1, uri2, uri3)
+                            ResultsScreen(
+                                navController,
+                                mAuth,
+                                predictOily1,
+                                predictOily2,
+                                predictOily3,
+                                predictFace1,
+                                predictFace2,
+                                predictFace3,
+                                uri1,
+                                uri2,
+                                uri3
+                            )
                         }
-                        composable("diary") { DiaryScreen(navController, mAuth) }
-                        composable("product") { ProductScreen(navController) }
-                        composable("logout"){
+                        composable("diary") { DiaryScreen(mAuth) }
+                        composable("product") { ProductScreen() }
+                        composable("logout") {
                             Logout(onClicked = { signOut(navController) })
                         }
-                        composable("shop") { ShopScreen(navController) }
                         composable("clinic") { ClinicScreen(navController) }
                         composable("splash") {
                             SplashContent(navController)
                         }
-
                         // 여기에 다른 화면들을 네비게이션 구조에 추가합니다.
                     }
                 }
@@ -149,6 +142,7 @@ class MainActivity : ComponentActivity() {
 
         }
     }
+
     @Composable
     fun SplashContent(navController: NavController) {
         var scale by remember { mutableStateOf(1f) }
@@ -226,45 +220,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-//@Composable
-//fun MyApp(launcher: ManagedActivityResultLauncher<Intent, ActivityResult>, signInIntent: Intent) {
-//    MaterialTheme {
-//        Surface {
-//            // NavController 인스턴스를 생성합니다.
-//            val navController = rememberNavController()
-//
-//            // NavHost를 사용하여 네비게이션 구조를 설정합니다.
-//            NavHost(navController = navController, startDestination = "login") {
-//                composable("login") {
-//                    LoginScreen(signInClicked = {
-//                        launcher.launch(signInIntent)
-//                    })
-//                }
-//                composable("home") { HomeScreen(navController) }
-//                composable("skin_analysis") { SkinAnalysisScreen(navController) }
-//                composable("results/{predict1}/{predict2}") {
-//                    val predictOily = it.arguments?.getString("predict1")?.toInt()
-//                    val predictFace = it.arguments?.getString("predict2")?.toInt()
-//                    ResultsScreen(navController, predictOily, predictFace)
-//                }
-//                composable("diary") { DiaryScreen(navController) }
-//                composable("product") { ProductScreen(navController) }
-//                composable("logout"){
-//                    Logout(onClicked = { signOut(navController) })
-//                }
-//                composable("shop") { ShopScreen(navController) }
-//                composable("clinic") { ClinicScreen(navController) }
-//                // 여기에 다른 화면들을 네비게이션 구조에 추가합니다.
-//            }
-//        }
-//    }
-//}
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    GetiSkinTheme {
-//        Greeting("Android")
-//    }
-//}
