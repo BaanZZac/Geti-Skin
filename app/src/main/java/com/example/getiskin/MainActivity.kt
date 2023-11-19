@@ -1,14 +1,11 @@
 package com.example.getiskin
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -132,9 +129,9 @@ class MainActivity : ComponentActivity() {
                             val headUri = it.arguments?.getString("headUri")
                             val noseUri = it.arguments?.getString("noseUri")
                             val cheekUri = it.arguments?.getString("cheekUri")
-                            ResultsScreen(navController, mAuth, predictOilyHead, predictOilyNose, predictOilyChick, predictHead, predictNose, predictChick, headUri, noseUri, cheekUri)
+                            ResultsScreen2(navController, mAuth, predictOilyHead, predictOilyNose, predictOilyChick, predictHead, predictNose, predictChick, headUri, noseUri, cheekUri)
                         }
-                        composable("diary") { DiaryScreen(navController) }
+                        composable("diary") { DiaryScreen(navController, mAuth) }
                         composable("product") { ProductScreen(navController) }
                         composable("logout"){
                             Logout(onClicked = { signOut(navController) })
