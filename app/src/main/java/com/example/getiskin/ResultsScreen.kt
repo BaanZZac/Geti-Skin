@@ -208,6 +208,10 @@ fun ResultsScreen(
     noseUriString: String?,
     cheekUriString: String?
 ) {
+    val complexAd = "https://www.coupang.com/np/search?component=&q=%EB%B3%B5%ED%95%A9%EC%84%B1+%ED%99%94%EC%9E%A5%ED%92%88&channel=user"
+    val oilyAd = "https://www.coupang.com/np/search?component=&q=%EC%A7%80%EC%84%B1+%ED%99%94%EC%9E%A5%ED%92%88&channel=user"
+    val dryAd = "https://www.coupang.com/np/search?component=&q=%EA%B1%B4%EC%84%B1+%ED%99%94%EC%9E%A5%ED%92%88&channel=user"
+
     val uri1 = Uri.parse(headUriString)
     val uri2 = Uri.parse(noseUriString)
     val uri3 = Uri.parse(cheekUriString)
@@ -322,10 +326,10 @@ fun ResultsScreen(
                         facePart3,
                         finalSkinType
                     )
-                    AdPlaces()
-                    AdPlaces()
+                    AdPlaces("지성 화장품 광고", oilyAd)
+                    AdPlaces("건성 화장품 광고", dryAd)
+                    AdPlaces("복합성 화장품 광고", complexAd)
                 }
-
             }
         }
     }
@@ -386,7 +390,7 @@ fun StyledText(first: String, second: String) {
 }
 
 @Composable
-fun StyledSkinType(finalSkinType: String) {
+fun StyledSkinType(finalSkinType: String, name: String = "당신") {
     val color = when (finalSkinType) {
         "건성" -> Color.Red
         "지성" -> Color.Blue
@@ -396,7 +400,7 @@ fun StyledSkinType(finalSkinType: String) {
 
     val styledText = AnnotatedString.Builder().apply {
         withStyle(style = SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
-            append("당신의 피부는 \"$finalSkinType\" 입니다.")
+            append("${name}의 피부는 \"$finalSkinType\" 입니다.")
         }
     }.toAnnotatedString()
 

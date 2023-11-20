@@ -184,7 +184,7 @@ fun ClinicButton(navController: NavController) {
 
 
 @Composable
-fun AdPlaces() {
+fun AdPlaces(adName: String, uriString: String) {
     var isClicked by remember { mutableStateOf(false) }
     val context = LocalContext.current
     Box(
@@ -200,7 +200,7 @@ fun AdPlaces() {
             .clickable {
                 // 광고를 클릭할 때 수행할 작업 추가
                 isClicked = true
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.intel.co.kr/content/www/kr/ko/homepage.html"))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString))
                 context.startActivity(intent)
             }
     ) {
@@ -224,7 +224,7 @@ fun AdPlaces() {
         )
         // 광고 텍스트
         Text(
-            text = "피부클리닉 샵 광고",
+            text = adName,
             textAlign = TextAlign.Center,
             color = Color.White,
             fontSize = 18.sp,
@@ -238,6 +238,9 @@ fun AdPlaces() {
 
 @Composable
 fun HomeScreen(navController: NavController, onClicked: () -> Unit) {
+
+    val oilyAd = "https://www.coupang.com/np/search?component=&q=%EC%A7%80%EC%84%B1+%ED%99%94%EC%9E%A5%ED%92%88&channel=user"
+    val dryAd = "https://www.coupang.com/np/search?component=&q=%EA%B1%B4%EC%84%B1+%ED%99%94%EC%9E%A5%ED%92%88&channel=user"
 
     Box(
         modifier = Modifier
@@ -301,10 +304,9 @@ fun HomeScreen(navController: NavController, onClicked: () -> Unit) {
                         navController
                     )
                     LogoutButton(onClicked)
-                    AdPlaces()
-                    AdPlaces()
+                    AdPlaces("지성 화장품 광고", oilyAd)
+                    AdPlaces("건성 화장품 광고", dryAd)
                 }
-
             }
         }
     }

@@ -165,6 +165,9 @@ fun ClinicSearchButton() {
 @Composable
 fun ClinicScreen(navController: NavController) {
 
+    val complexAd = "https://www.coupang.com/np/search?component=&q=%EB%B3%B5%ED%95%A9%EC%84%B1+%ED%99%94%EC%9E%A5%ED%92%88&channel=user"
+    val hwahaeAd = "https://www.hwahae.co.kr/"
+
     val searchText = "피부관리"
     val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(LocalContext.current)
@@ -217,7 +220,7 @@ fun ClinicScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                AdPlaces()
+                AdPlaces("복합성 화장품 광고", complexAd)
                 Spacer(modifier = Modifier.height(80.dp))
                 // Button
                 ClinicSearchButton()
@@ -225,7 +228,7 @@ fun ClinicScreen(navController: NavController) {
                 HomeReturnButton(navController)
                 Spacer(modifier = Modifier.height(70.dp))
 
-                AdPlaces()
+                AdPlaces("화해 광고", hwahaeAd)
             }
 
         }

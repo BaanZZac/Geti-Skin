@@ -80,14 +80,14 @@ fun DiaryScreen(auth: FirebaseAuth) {
         // Journal Entries
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(skinAnalysisList) { entry ->
-                JournalEntryCard(entry = entry)
+                JournalEntryCard(entry = entry, auth)
             }
         }
     }
 }
 
 @Composable
-fun JournalEntryCard(entry: SkinAnalysisData) {
+fun JournalEntryCard(entry: SkinAnalysisData, auth: FirebaseAuth) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,6 +99,7 @@ fun JournalEntryCard(entry: SkinAnalysisData) {
 //                .fillMaxSize()
 //                .background(Color(android.graphics.Color.parseColor("#F7F1E5")))
 //        ) {
+        val user = auth.currentUser
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -123,7 +124,7 @@ fun JournalEntryCard(entry: SkinAnalysisData) {
 //                text = "피부상태: ${entry.finalSkinType}",
 //                style = MaterialTheme.typography.titleSmall
 //            )
-                StyledSkinType(entry.finalSkinType)
+                user?.displayName?.let { StyledSkinType(entry.finalSkinType, "${it}님") }
 
                 // 세로 구분선
                 Spacer(modifier = Modifier.height(8.dp))
