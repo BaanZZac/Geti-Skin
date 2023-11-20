@@ -390,7 +390,7 @@ fun SkinAnalysisScreen(navController: NavController) {
 //비동기 환경에서 처리
 suspend fun uploadImage(file: File): Pair<Int, Int> = withContext(Dispatchers.IO) {
     //서버가 열린 주소
-    val url = "http://192.168.45.175:5000/predict"
+    val url = "http://192.168.1.111:5000/predict"
     //ok3http 사용
     val client = OkHttpClient()
 

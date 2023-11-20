@@ -35,6 +35,7 @@ import coil.compose.rememberImagePainter
 import coil.transform.CircleCropTransformation
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -78,7 +79,7 @@ fun DiaryScreen(auth: FirebaseAuth) {
 
         // Journal Entries
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(skinAnalysisList.reversed()) { entry ->
+            items(skinAnalysisList) { entry ->
                 JournalEntryCard(entry = entry)
             }
         }
@@ -106,7 +107,7 @@ fun JournalEntryCard(entry: SkinAnalysisData) {
         ) {
             Text(
                 text = entry.timestamp,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
@@ -159,7 +160,9 @@ private suspend fun fetchDataFromFirestore(userId: String): List<SkinAnalysisDat
     val result = mutableListOf<SkinAnalysisData>()
 
     // "skinAnalysis" 컬렉션에서 데이터 가져오기
-    db.collection("skinAnalysis").get().addOnSuccessListener { querySnapshot ->
+    db.collection("skinAnalysis")
+        .orderBy("timestamp", Query.Direction.DESCENDING) // timestamp 기준으로 최신순으로 정렬
+        .get().addOnSuccessListener { querySnapshot ->
             for (document in querySnapshot) {
                 val skinAnalysisData = document.toObject(SkinAnalysisData::class.java)
                 if (skinAnalysisData.userID == userId) {

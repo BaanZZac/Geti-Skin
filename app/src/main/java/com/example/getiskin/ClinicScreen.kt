@@ -71,7 +71,7 @@ fun HomeReturnButton(navController: NavController) {
         Text(
             text = "홈 화면으로",
             textAlign = TextAlign.Center,
-            color = Color.Black,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
@@ -152,7 +152,7 @@ fun ClinicSearchButton() {
         Text(
             text = "피부관리샵 찾기",
             textAlign = TextAlign.Center,
-            color = Color.Black ,
+            color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
