@@ -150,10 +150,17 @@ fun SkinAnalysisScreen(navController: NavController) {
                     val (predictedClassOliy, predictedClassFace) = uploadImage(file)
                     predictOliyList.add(predictedClassOliy)
                     predictFaceList.add(predictedClassFace)
+                    while (predictOliyList.size > 3) {
+                        predictOliyList.removeAt(0)
+                    }
+                    while (predictFaceList.size > 3) {
+                        predictFaceList.removeAt(0)
+                    }
+
                 }
             }
         } else {
-            Log.e("사진 촬영 실패","실패실패실패실패실패실패")
+            Log.e("사진 촬영 실패", "실패실패실패실패실패실패")
         }
     }
 
@@ -182,8 +189,17 @@ fun SkinAnalysisScreen(navController: NavController) {
                                 }
                                 try {
                                     val (predictedClassOliy, predictedClassFace) = uploadImage(file)
+
                                     predictOliyList.add(predictedClassOliy)
                                     predictFaceList.add(predictedClassFace)
+
+                                    while (predictOliyList.size > 3) {
+                                        predictOliyList.removeAt(0)
+                                    }
+                                    while (predictFaceList.size > 3) {
+                                        predictFaceList.removeAt(0)
+                                    }
+
                                     Log.d("성공함", "예측값 추가됨: $predictedClassOliy, $predictedClassFace")
                                 } catch (e: Exception) {
                                     Log.e("예외 발생", e.toString())
